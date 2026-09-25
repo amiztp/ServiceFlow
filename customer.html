@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServiceFlow - Customer Portal (Get Service)</title>
+</head>
+<body>
+
+    <!-- cust nav -->
+    <header>
+        <h1>ServiceFlow Sri Lanka</h1>
+        <p>Customer Portal - Request & Manage Field Services</p>
+        <nav>
+            <ul>
+                <!-- link home page here -->
+                <li><a href="#">Home (How it Works)</a></li>
+                <!-- link cust page here -->
+                <li><a href="#"><strong>Customer View (Get Service)</strong></a></li>
+                <!-- link tech page here -->
+                <li><a href="#">Technician View (Give Service)</a></li>
+                <!-- link admin page here -->
+                <li><a href="#">Admin Dashboard</a></li>
+            </ul>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        <!-- cust profile -->
+        <section>
+            <h2>Customer Account: Colombo City Centre Mall</h2>
+            <p><strong>Contact Person:</strong> Kusal Perera (facilities@colombomall.lk)</p>
+            <p><strong>Property Address:</strong> 137 Sir James Pieris Mawatha, Colombo 02</p>
+            <p><strong>Active Orders:</strong> 2 | <strong>Total Completed Spent:</strong> LKR 4,850,000</p>
+        </section>
+
+        <hr>
+
+        <!-- req service form -->
+        <section>
+            <h2>Choose Service Category & Request Order</h2>
+            <!-- form action link cust page here -->
+            <form action="#" method="get">
+                <p>
+                    <label for="service_category">Select Category:</label><br>
+                    <select id="service_category" name="category" required>
+                        <option value="HVAC">HVAC & Air Conditioning</option>
+                        <option value="CCTV">CCTV & Security Systems</option>
+                        <option value="Electrical">Electrical & Power Panels</option>
+                        <option value="Refrigeration">Commercial Refrigeration</option>
+                        <option value="Solar">Solar & Energy Storage</option>
+                        <option value="Plumbing">Commercial Plumbing</option>
+                    </select>
+                </p>
+                <p>
+                    <label for="job_title">Request Title:</label><br>
+                    <input type="text" id="job_title" name="title" placeholder="e.g. Galle Road Parking CCTV Sensor Expansion" required>
+                </p>
+                <p>
+                    <label for="job_desc">Equipment Issue / Scope Details:</label><br>
+                    <textarea id="job_desc" name="description" rows="4" cols="50" placeholder="Describe the malfunction or installation requirements..."></textarea>
+                </p>
+                <p>
+                    <button type="submit">Submit Service Request</button>
+                </p>
+            </form>
+        </section>
+
+        <hr>
+
+        <!-- pending quote -->
+        <section>
+            <h2>Quotation Ready For Customer Approval</h2>
+            <fieldset>
+                <legend><strong>Job ID: JOB-2026-081 - Outdoor CCTV Expansion</strong></legend>
+                <p><strong>Service Type:</strong> CCTV & Security</p>
+                <p><strong>Scope:</strong> Install 6 weather-resistant 4K IP CCTV cameras around parking perimeter with Cat6 STP cabling and NVR setup.</p>
+                
+                <h3>Itemized Quote Breakdown (LKR):</h3>
+                <table border="1" cellpadding="5" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Line Item</th>
+                            <th>Qty</th>
+                            <th>Unit Rate (LKR)</th>
+                            <th>Total Amount (LKR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>4K Weatherproof IP Camera (Model X-200)</td>
+                            <td>6</td>
+                            <td>38,000</td>
+                            <td>228,000</td>
+                        </tr>
+                        <tr>
+                            <td>Shielded Cat6 Cable Reel (500ft STP)</td>
+                            <td>2</td>
+                            <td>18,000</td>
+                            <td>36,000</td>
+                        </tr>
+                        <tr>
+                            <td>16-Channel PoE NVR Storage System</td>
+                            <td>1</td>
+                            <td>75,000</td>
+                            <td>75,000</td>
+                        </tr>
+                        <tr>
+                            <td>Senior Technician Rigging & Labor</td>
+                            <td>6 hrs</td>
+                            <td>14,500</td>
+                            <td>86,000</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" align="right"><strong>Total Estimated Quote:</strong></td>
+                            <td><strong>LKR 425,000</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <br>
+                <!-- form action link cust page here -->
+                <form action="#" method="get">
+                    <input type="hidden" name="approved_job" value="JOB-2026-081">
+                    <button type="submit"><strong>Approve Quote & Dispatch Nearby Technician</strong></button>
+                </form>
+            </fieldset>
+        </section>
+
+        <hr>
+
+        <!-- live tech track -->
+        <section>
+            <h2>Active Service Order Tracking</h2>
+            <fieldset>
+                <legend><strong>Job ID: JOB-2026-082 - Commercial RTU Compressor Service</strong></legend>
+                <p><strong>Location:</strong> Zone 2, Biyagama EPZ, Biyagama</p>
+                <p><strong>Assigned Technician:</strong> Chaminda Bandara (CCTV & Electrical Lead)</p>
+                <p><strong>Current Status:</strong> En-Route (Estimated Arrival: 14 Minutes)</p>
+            </fieldset>
+        </section>
+
+        <hr>
+
+        <!-- order history -->
+        <section>
+            <h2>Your Service History & Invoices</h2>
+            <table border="1" cellpadding="6" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Title & Category</th>
+                        <th>Date Requested</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                        <th>Invoice / Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>JOB-2026-081</td>
+                        <td>Outdoor CCTV Expansion (CCTV & Security)</td>
+                        <td>2026-09-22</td>
+                        <td>QUOTATION SENT</td>
+                        <td>LKR 425,000</td>
+                        <td>Pending Customer Approval</td>
+                    </tr>
+                    <tr>
+                        <td>JOB-2026-082</td>
+                        <td>Commercial RTU HVAC Service (HVAC)</td>
+                        <td>2026-09-23</td>
+                        <td>IN PROGRESS</td>
+                        <td>LKR 285,000</td>
+                        <td>Work In Progress</td>
+                    </tr>
+                    <tr>
+                        <td>JOB-2026-084</td>
+                        <td>Chiller & Cooler Tune-up (Refrigeration)</td>
+                        <td>2026-09-20</td>
+                        <td>COMPLETED & INVOICED</td>
+                        <td>LKR 195,000</td>
+                        <td>Paid - Receipt Downloaded</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <hr>
+
+    <!-- footr -->
+    <footer>
+        <p>ServiceFlow Sri Lanka - Field Service Management System | Unlinked Static HTML</p>
+        <p>
+            Navigations:
+            <!-- link home page here -->
+            <a href="#">Home</a> |
+            <!-- link cust page here -->
+            <a href="#">Customer</a> |
+            <!-- link tech page here -->
+            <a href="#">Technician</a> |
+            <!-- link admin page here -->
+            <a href="#">Admin</a>
+        </p>
+    </footer>
+
+</body>
+</html>
