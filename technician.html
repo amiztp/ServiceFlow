@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServiceFlow - Technician Portal (Give Service)</title>
+</head>
+<body>
+
+    <!-- tech nav -->
+    <header>
+        <h1>ServiceFlow Sri Lanka</h1>
+        <p>Technician Portal - Filter Nearby Services & Execute Orders</p>
+        <nav>
+            <ul>
+                <!-- link home page here -->
+                <li><a href="#">Home (How it Works)</a></li>
+                <!-- link cust page here -->
+                <li><a href="#">Customer View (Get Service)</a></li>
+                <!-- link tech page here -->
+                <li><a href="#"><strong>Technician View (Give Service)</strong></a></li>
+                <!-- link admin page here -->
+                <li><a href="#">Admin Dashboard</a></li>
+            </ul>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        <!-- tech profile -->
+        <section>
+            <h2>Technician Profile: Chaminda Bandara</h2>
+            <p><strong>Role Specialty:</strong> CCTV & Low Voltage Lead</p>
+            <p><strong>Phone:</strong> +94 71 345 6789 | <strong>Rating:</strong> 4.85 ★ | <strong>Completed This Month:</strong> 22 Jobs</p>
+            <p><strong>Skills:</strong> IP Cameras, Cat6 STP Cabling, Access Control, NVR Config</p>
+            <p><strong>GPS Dispatch Location:</strong> Colombo Central Sector (GPS Active)</p>
+        </section>
+
+        <hr>
+
+        <!-- tech filter -->
+        <section>
+            <h2>Filter Nearby Service Orders</h2>
+            <!-- form action link tech page here -->
+            <form action="#" method="get">
+                <p>
+                    <label for="filter_radius">Nearby Radius Proximity:</label><br>
+                    <select id="filter_radius" name="radius">
+                        <option value="ALL">All Distances</option>
+                        <option value="5">Within 5 km</option>
+                        <option value="15" selected>Within 15 km</option>
+                        <option value="25">Within 25 km</option>
+                    </select>
+                </p>
+                <p>
+                    <label for="filter_specialty">Specialty Category:</label><br>
+                    <select id="filter_specialty" name="specialty">
+                        <option value="ALL">All Specialties</option>
+                        <option value="HVAC">HVAC</option>
+                        <option value="CCTV">CCTV & Security</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Refrigeration">Refrigeration</option>
+                        <option value="Solar">Solar</option>
+                        <option value="Plumbing">Plumbing</option>
+                    </select>
+                </p>
+                <p>
+                    <label for="filter_status">Order Status:</label><br>
+                    <select id="filter_status" name="status">
+                        <option value="ALL">All Orders</option>
+                        <option value="UNASSIGNED" selected>Unassigned (Available to Pick Up)</option>
+                        <option value="MY_JOBS">My Assigned Orders</option>
+                        <option value="COMPLETED">Completed Orders</option>
+                    </select>
+                </p>
+                <p>
+                    <label for="filter_priority">Priority Level:</label><br>
+                    <select id="filter_priority" name="priority">
+                        <option value="ALL">All Priorities</option>
+                        <option value="urgent">Urgent / Emergency</option>
+                        <option value="high">High Priority</option>
+                        <option value="medium">Medium Priority</option>
+                    </select>
+                </p>
+                <p>
+                    <button type="submit">Apply Proximity & Category Filters</button>
+                </p>
+            </form>
+        </section>
+
+        <hr>
+
+        <!-- available orders -->
+        <section>
+            <h2>Available Service Orders Nearby</h2>
+
+            <!-- Order 1 -->
+            <fieldset>
+                <legend><strong>Job ID: JOB-2026-085 - Solar Inverter Diagnostic & Panel Clean</strong></legend>
+                <p><strong>Customer:</strong> Colombo City Centre Mall (Rooftop Array)</p>
+                <p><strong>Location:</strong> 137 Sir James Pieris Mawatha, Colombo 02 (📍 3.2 km Nearby)</p>
+                <p><strong>Category:</strong> Solar & Energy | <strong>Priority:</strong> Medium</p>
+                <p><strong>Est. Pay Value:</strong> LKR 120,000</p>
+                <p><strong>Description:</strong> Inverter #2 showing 12% drop in generation. Perform string test, thermal scan, and automated washing.</p>
+                <!-- form action link tech page here -->
+                <form action="#" method="get">
+                    <input type="hidden" name="claimed_job" value="JOB-2026-085">
+                    <button type="submit"><strong>Claim & Pick Up Order (LKR 120,000)</strong></button>
+                </form>
+            </fieldset>
+
+            <br>
+
+            <!-- Order 2 -->
+            <fieldset>
+                <legend><strong>Job ID: JOB-2026-086 - Emergency Access Control Gate Wiring</strong></legend>
+                <p><strong>Customer:</strong> Horizon Logistics Hub (Gate 2)</p>
+                <p><strong>Location:</strong> Zone 2, Biyagama EPZ (📍 8.5 km Nearby)</p>
+                <p><strong>Category:</strong> Electrical & Security | <strong>Priority:</strong> High</p>
+                <p><strong>Est. Pay Value:</strong> LKR 210,000</p>
+                <p><strong>Description:</strong> Vehicle barrier arm sensor damaged by delivery truck. Rewire magnetic loop sensor and test keycard reader.</p>
+                <!-- form action link tech page here -->
+                <form action="#" method="get">
+                    <input type="hidden" name="claimed_job" value="JOB-2026-086">
+                    <button type="submit"><strong>Claim & Pick Up Order (LKR 210,000)</strong></button>
+                </form>
+            </fieldset>
+        </section>
+
+        <hr>
+
+        <!-- work log / checklist -->
+        <section>
+            <h2>My Active Work Order: JOB-2026-082</h2>
+            <p><strong>Title:</strong> Commercial RTU HVAC Compressor Service</p>
+            <p><strong>Location:</strong> Zone 2, Biyagama EPZ, Biyagama (Horizon Logistics)</p>
+            
+            <h3>Field Service Checklist:</h3>
+            <!-- form action link tech page here -->
+            <form action="#" method="get">
+                <p>
+                    <input type="checkbox" id="chk1" name="chk1" checked>
+                    <label for="chk1">Disconnect master circuit breaker (LOTO protocol)</label>
+                </p>
+                <p>
+                    <input type="checkbox" id="chk2" name="chk2" checked>
+                    <label for="chk2">Inspect evaporator coil for airflow blockages</label>
+                </p>
+                <p>
+                    <input type="checkbox" id="chk3" name="chk3">
+                    <label for="chk3">Recharge R-410A refrigerant to operating PSI</label>
+                </p>
+                <p>
+                    <input type="checkbox" id="chk4" name="chk4">
+                    <label for="chk4">30-minute system burn-in temperature verification</label>
+                </p>
+
+                <h3>Technician Field Audit Notes:</h3>
+                <p>
+                    <textarea name="tech_notes" rows="4" cols="50">Arrived on roof at 10:15 AM. Implemented LOTO isolation. Clogged evaporator coil detected and sanitized with chemical foam. Pressure restored to 38F delta-T.</textarea>
+                </p>
+                <p>
+                    <button type="submit">Save Notes & Update Progress</button>
+                    <button type="submit" name="action" value="complete">Mark Job Completed & Finalize Invoice</button>
+                </p>
+            </form>
+        </section>
+    </main>
+
+    <hr>
+
+    <!-- footr -->
+    <footer>
+        <p>ServiceFlow Sri Lanka - Field Service Management System | Unlinked Static HTML</p>
+        <p>
+            Navigations:
+            <!-- link home page here -->
+            <a href="#">Home</a> |
+            <!-- link cust page here -->
+            <a href="#">Customer</a> |
+            <!-- link tech page here -->
+            <a href="#">Technician</a> |
+            <!-- link admin page here -->
+            <a href="#">Admin</a>
+        </p>
+    </footer>
+
+</body>
+</html>
