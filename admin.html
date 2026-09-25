@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServiceFlow - Admin Dashboard</title>
+</head>
+<body>
+
+    <!-- admin nav -->
+    <header>
+        <h1>ServiceFlow Sri Lanka</h1>
+        <p>Admin Management Console - Operational Overview & Dispatch</p>
+        <nav>
+            <ul>
+                <!-- link home page here -->
+                <li><a href="#">Home (How it Works)</a></li>
+                <!-- link cust page here -->
+                <li><a href="#">Customer View (Get Service)</a></li>
+                <!-- link tech page here -->
+                <li><a href="#">Technician View (Give Service)</a></li>
+                <!-- link admin page here -->
+                <li><a href="#"><strong>Admin Dashboard</strong></a></li>
+            </ul>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        <!-- admin kpi -->
+        <section>
+            <h2>Operational Overview Metrics (Sri Lanka)</h2>
+            <table border="1" cellpadding="10" cellspacing="0">
+                <tr>
+                    <td>
+                        <h3>Active Field Jobs</h3>
+                        <p><strong>14 Jobs</strong> (3 new today)</p>
+                    </td>
+                    <td>
+                        <h3>Pending Quotations</h3>
+                        <p><strong>LKR 1,840,000</strong> (5 quotes awaiting approval)</p>
+                    </td>
+                    <td>
+                        <h3>Unassigned Tickets</h3>
+                        <p><strong>3 Tickets</strong> (Requires Tech Dispatch)</p>
+                    </td>
+                    <td>
+                        <h3>Monthly Revenue</h3>
+                        <p><strong>LKR 14,280,000</strong> (+12.4% YoY)</p>
+                    </td>
+                </tr>
+            </table>
+        </section>
+
+        <hr>
+
+        <!-- pipeline 6 step -->
+        <section>
+            <h2>6-Stage Job Lifecycle Pipeline</h2>
+            <table border="1" cellpadding="6" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Stage 1: Request Received</th>
+                        <th>Stage 2: Quotation Sent</th>
+                        <th>Stage 3: Customer Approved</th>
+                        <th>Stage 4: Scheduled / Assigned</th>
+                        <th>Stage 5: In Progress</th>
+                        <th>Stage 6: Completed & Invoiced</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr valign="top">
+                        <td>
+                            <p><strong>JOB-2026-085</strong><br>Solar Inverter Diagnostic<br>LKR 120,000 (CCC Mall)</p>
+                        </td>
+                        <td>
+                            <p><strong>JOB-2026-081</strong><br>CCTV Parking Expansion<br>LKR 425,000 (CCC Mall)</p>
+                        </td>
+                        <td>
+                            <p><strong>JOB-2026-086</strong><br>Gate Access Rewire<br>LKR 210,000 (Horizon Hub)</p>
+                        </td>
+                        <td>
+                            <p><strong>JOB-2026-083</strong><br>400A Panel Upgrade<br>LKR 560,000 (Asiri Health)</p>
+                        </td>
+                        <td>
+                            <p><strong>JOB-2026-082</strong><br>Commercial RTU Service<br>LKR 285,000 (Horizon Hub)</p>
+                        </td>
+                        <td>
+                            <p><strong>JOB-2026-084</strong><br>Cooler Tune-up<br>LKR 195,000 (Kandy Plaza)</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <hr>
+
+        <!-- dispatch table -->
+        <section>
+            <h2>All Active Work Orders & Technician Dispatch</h2>
+            <table border="1" cellpadding="6" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Job ID</th>
+                        <th>Customer Company</th>
+                        <th>Service Type</th>
+                        <th>Priority</th>
+                        <th>Current Stage</th>
+                        <th>Assigned Technician</th>
+                        <th>Amount (LKR)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>JOB-2026-081</td>
+                        <td>Colombo City Centre Mall</td>
+                        <td>CCTV & Security</td>
+                        <td>HIGH</td>
+                        <td>Quotation Sent</td>
+                        <td>Chaminda Bandara</td>
+                        <td>LKR 425,000</td>
+                        <!-- link cust page here -->
+                        <td><a href="#">View Quote</a></td>
+                    </tr>
+                    <tr>
+                        <td>JOB-2026-082</td>
+                        <td>Horizon Logistics Hub</td>
+                        <td>HVAC</td>
+                        <td>URGENT</td>
+                        <td>In Progress</td>
+                        <td>Kasun Jayasuriya</td>
+                        <td>LKR 285,000</td>
+                        <!-- link tech page here -->
+                        <td><a href="#">View Tech Log</a></td>
+                    </tr>
+                    <tr>
+                        <td>JOB-2026-083</td>
+                        <td>Asiri Health Medical Centre</td>
+                        <td>Electrical</td>
+                        <td>MEDIUM</td>
+                        <td>Scheduled / Assigned</td>
+                        <td>Nimali Fernando</td>
+                        <td>LKR 560,000</td>
+                        <!-- link admin page here -->
+                        <td><a href="#">Reassign Tech</a></td>
+                    </tr>
+                    <tr>
+                        <td>JOB-2026-084</td>
+                        <td>Kandy City Plaza Hotel</td>
+                        <td>Refrigeration</td>
+                        <td>LOW</td>
+                        <td>Completed & Invoiced</td>
+                        <td>Pathum Nissanka</td>
+                        <td>LKR 195,000</td>
+                        <!-- link admin page here -->
+                        <td><a href="#">Send Invoice</a></td>
+                    </tr>
+                    <tr>
+                        <td>JOB-2026-085</td>
+                        <td>Colombo City Centre Mall</td>
+                        <td>Solar</td>
+                        <td>LOW</td>
+                        <td>Request Received</td>
+                        <td><em>Unassigned</em></td>
+                        <td>LKR 120,000</td>
+                        <!-- link tech page here -->
+                        <td><a href="#">Claim Order</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <hr>
+
+        <!-- create order form -->
+        <section>
+            <h2>Create New Service Work Order</h2>
+            <!-- form action link admin page here -->
+            <form action="#" method="get">
+                <p>
+                    <label for="admin_title">Work Order Title:</label><br>
+                    <input type="text" id="admin_title" name="title" placeholder="e.g. Main Distribution Panel Thermal Scan" required>
+                </p>
+                <p>
+                    <label for="admin_customer">Customer Account:</label><br>
+                    <select id="admin_customer" name="customer">
+                        <option value="Colombo City Centre Mall">Colombo City Centre Mall</option>
+                        <option value="Horizon Logistics Hub">Horizon Logistics Hub</option>
+                        <option value="Asiri Health Medical Centre">Asiri Health Medical Centre</option>
+                        <option value="Kandy City Plaza Hotel">Kandy City Plaza Hotel</option>
+                    </select>
+                </p>
+                <p>
+                    <label for="admin_category">Service Category:</label><br>
+                    <select id="admin_category" name="category">
+                        <option value="HVAC">HVAC</option>
+                        <option value="CCTV">CCTV & Security</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Refrigeration">Refrigeration</option>
+                        <option value="Solar">Solar</option>
+                    </select>
+                </p>
+                <p>
+                    <label for="admin_amount">Estimated Price (LKR):</label><br>
+                    <input type="number" id="admin_amount" name="amount" value="185000">
+                </p>
+                <p>
+                    <label for="admin_tech">Assign Field Specialist:</label><br>
+                    <select id="admin_tech" name="tech_id">
+                        <option value="">Unassigned Queue</option>
+                        <option value="tech-1">Kasun Jayasuriya (Lead HVAC)</option>
+                        <option value="tech-2">Chaminda Bandara (CCTV Lead)</option>
+                        <option value="tech-3">Nimali Fernando (Senior Electrician)</option>
+                        <option value="tech-4">Pathum Nissanka (Solar Tech)</option>
+                    </select>
+                </p>
+                <p>
+                    <button type="submit">Create & Dispatch Order</button>
+                </p>
+            </form>
+        </section>
+    </main>
+
+    <hr>
+
+    <!-- footr -->
+    <footer>
+        <p>ServiceFlow Sri Lanka - Field Service Management System | Unlinked Static HTML</p>
+        <p>
+            Navigations:
+            <!-- link home page here -->
+            <a href="#">Home</a> |
+            <!-- link cust page here -->
+            <a href="#">Customer</a> |
+            <!-- link tech page here -->
+            <a href="#">Technician</a> |
+            <!-- link admin page here -->
+            <a href="#">Admin</a>
+        </p>
+    </footer>
+
+</body>
+</html>
