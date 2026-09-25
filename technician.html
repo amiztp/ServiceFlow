@@ -13,14 +13,10 @@
         <p>Technician Portal - Filter Nearby Services & Execute Orders</p>
         <nav>
             <ul>
-                <!-- link home page here -->
-                <li><a href="#">Home (How it Works)</a></li>
-                <!-- link cust page here -->
-                <li><a href="#">Customer View (Get Service)</a></li>
-                <!-- link tech page here -->
-                <li><a href="#"><strong>Technician View (Give Service)</strong></a></li>
-                <!-- link admin page here -->
-                <li><a href="#">Admin Dashboard</a></li>
+                <li><a href="index.html">Home (How it Works)</a></li>
+                <li><a href="customer.html">Customer View (Get Service)</a></li>
+                <li><a href="technician.html"><strong>Technician View (Give Service)</strong></a></li>
+                <li><a href="admin.html">Admin Dashboard</a></li>
             </ul>
         </nav>
         <hr>
@@ -41,8 +37,7 @@
         <!-- tech filter -->
         <section>
             <h2>Filter Nearby Service Orders</h2>
-            <!-- form action link tech page here -->
-            <form action="#" method="get">
+            <form action="technician.html" method="get">
                 <p>
                     <label for="filter_radius">Nearby Radius Proximity:</label><br>
                     <select id="filter_radius" name="radius">
@@ -102,8 +97,7 @@
                 <p><strong>Category:</strong> Solar & Energy | <strong>Priority:</strong> Medium</p>
                 <p><strong>Est. Pay Value:</strong> LKR 120,000</p>
                 <p><strong>Description:</strong> Inverter #2 showing 12% drop in generation. Perform string test, thermal scan, and automated washing.</p>
-                <!-- form action link tech page here -->
-                <form action="#" method="get">
+                <form action="technician.html" method="get">
                     <input type="hidden" name="claimed_job" value="JOB-2026-085">
                     <button type="submit"><strong>Claim & Pick Up Order (LKR 120,000)</strong></button>
                 </form>
@@ -119,8 +113,7 @@
                 <p><strong>Category:</strong> Electrical & Security | <strong>Priority:</strong> High</p>
                 <p><strong>Est. Pay Value:</strong> LKR 210,000</p>
                 <p><strong>Description:</strong> Vehicle barrier arm sensor damaged by delivery truck. Rewire magnetic loop sensor and test keycard reader.</p>
-                <!-- form action link tech page here -->
-                <form action="#" method="get">
+                <form action="technician.html" method="get">
                     <input type="hidden" name="claimed_job" value="JOB-2026-086">
                     <button type="submit"><strong>Claim & Pick Up Order (LKR 210,000)</strong></button>
                 </form>
@@ -136,8 +129,7 @@
             <p><strong>Location:</strong> Zone 2, Biyagama EPZ, Biyagama (Horizon Logistics)</p>
             
             <h3>Field Service Checklist:</h3>
-            <!-- form action link tech page here -->
-            <form action="#" method="get">
+            <form action="technician.html" method="get">
                 <p>
                     <input type="checkbox" id="chk1" name="chk1" checked>
                     <label for="chk1">Disconnect master circuit breaker (LOTO protocol)</label>
@@ -171,18 +163,8 @@
 
     <!-- footr -->
     <footer>
-        <p>ServiceFlow Sri Lanka - Field Service Management System | Unlinked Static HTML</p>
-        <p>
-            Navigations:
-            <!-- link home page here -->
-            <a href="#">Home</a> |
-            <!-- link cust page here -->
-            <a href="#">Customer</a> |
-            <!-- link tech page here -->
-            <a href="#">Technician</a> |
-            <!-- link admin page here -->
-            <a href="#">Admin</a>
-        </p>
+        <p>ServiceFlow Sri Lanka - Field Service Management System | Static HTML Prototype</p>
+        <p>Navigations: <a href="index.html">Home</a> | <a href="customer.html">Customer</a> | <a href="technician.html">Technician</a> | <a href="admin.html">Admin</a></p>
     </footer>
 
 </body>
