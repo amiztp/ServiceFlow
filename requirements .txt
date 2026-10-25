@@ -1,36 +1,30 @@
-# ============================================================
-# ServiceFlow Backend + AI/RAG
-# ============================================================
+# ServiceFlow backend runtime dependencies
+# Starter dependency list, not a tested version lock.
+# Use Python 3.11. Resolve and test together before freezing exact versions.
 
-# --- Core API ---
-fastapi>=0.115
-uvicorn[standard]>=0.30
-sqlalchemy[asyncio]>=2.0
-alembic>=1.13
-psycopg[binary]>=3.1
-pgvector>=0.3
+# Web API and application configuration
+fastapi
+uvicorn[standard]
+pydantic[email]
+pydantic-settings
+python-multipart
 
-# --- Validation, configuration & security ---
-pydantic>=2.0
-pydantic-settings>=2.0
-email-validator>=2.0
-python-jose[cryptography]>=3.3
-bcrypt>=4.1
-python-multipart>=0.0.9
+# Relational database and migrations
+SQLAlchemy
+psycopg[binary]
+alembic
+pgvector
 
-# --- AI / RAG ---
-llama-index>=0.11
-llama-index-vector-stores-postgres>=0.3
-llama-index-embeddings-gemini>=0.2
-llama-index-llms-gemini>=0.2
-google-genai>=1.0
+# Authentication: use bcrypt directly, not Passlib
+PyJWT
+bcrypt
 
-# --- Document parsing ---
-pypdf>=4.0
+# Policy PDF extraction and Gemini RAG
+pypdf
+google-genai
+llama-index-core
+llama-index-llms-google-genai
+llama-index-embeddings-google-genai
 
-# --- NL-to-SQL validation ---
-sqlglot>=25.0
-
-# --- Testing ---
-pytest>=8.0
-httpx>=0.27
+# pgvector is accessed through SQLAlchemy in this starter design.
+# No separate LlamaIndex PostgreSQL vector-store adapter is required.
