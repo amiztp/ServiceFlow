@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# Backend tests and development checks
+pytest
+pytest-asyncio
+httpx
+ruff
