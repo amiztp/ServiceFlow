@@ -1,0 +1,1 @@
+This directory mirrors the confirmed ServiceFlow design specification supplied by the project lead. See the included source file `serviceflow-design-spec.md` for full decisions; it takes priority over demo layout.
