@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from app.api.routes import auth
 
 from app.database import engine
 
@@ -8,6 +9,11 @@ from app.database import engine
 app = FastAPI(
     title="ServiceFlow API",
     version="0.1.0",
+)
+app.include_router(
+    auth.router,
+    prefix="/auth",
+    tags=["Authentication"],
 )
 
 
