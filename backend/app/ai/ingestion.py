@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
+import re
 
-import fitz  # PyMuPDF
+import pymupdf
 
 
 @dataclass(frozen=True)
@@ -20,24 +21,38 @@ def extract_policy_chunks(
         raise ValueError("Require chunk_size > 0 and 0 <= overlap < chunk_size")
 
     chunks: list[PolicyChunk] = []
-    with fitz.open(pdf_path) as document:
+
+    with pymupdf.open(pdf_path) as document:
         for page_number, page in enumerate(document, start=1):
             text = " ".join(page.get_text("text").split())
             if not text:
                 continue
 
-            start = 0
-            while start < len(text):
-                end = min(start + chunk_size, len(text))
-                chunks.append(
-                    PolicyChunk(
-                        page_number=page_number,
-                        chunk_index=len(chunks),
-                        chunk_text=text[start:end],
+            sentences = re.split(r"(?<=[.!?])\s+", text)
+            current: list[str] = []
+
+            for sentence in sentences:
+                candidate = " ".join([*current, sentence])
+
+                if current and len(candidate) > chunk_size:
+                    chunks.append(
+                        PolicyChunk(page_number, len(chunks), " ".join(current))
                     )
+
+                    # Carry whole sentences into the next chunk.
+                    carry: list[str] = []
+                    for previous in reversed(current):
+                        if len(" ".join([previous, *carry])) > overlap:
+                            break
+                        carry.insert(0, previous)
+
+                    current = [*carry, sentence]
+                else:
+                    current.append(sentence)
+
+            if current:
+                chunks.append(
+                    PolicyChunk(page_number, len(chunks), " ".join(current))
                 )
-                if end == len(text):
-                    break
-                start = end - overlap
 
     return chunks
