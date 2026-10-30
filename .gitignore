@@ -34,4 +34,13 @@ backend/storage/sample-policy.pdf
 .idea/
 .DS_Store
 Thumbs.db
-#pdf
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local secrets
+.env
+.env.*
+!.env.example
