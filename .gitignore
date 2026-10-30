@@ -27,9 +27,11 @@ htmlcov/
 *.sqlite3
 backend/storage/uploads/
 backend/storage/generated/
+backend/storage/sample-policy.pdf
 
 # Editor and operating system files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+#pdf
