@@ -17,3 +17,4 @@ from app.models.invoice import Invoice
 from app.models.policy import Policy
 from app.models.notifications import Notification
 from app.models.dispute import Dispute
+from app.models.policy_chunk import PolicyChunk
