@@ -27,7 +27,10 @@ const ManagerInvoices = () => <h1>ManagerInvoices</h1>;
 const ManagerTeam = () => <h1>ManagerTeam</h1>;
 const PolicyPage = () => <h1>PolicyPage</h1>;
 const EmployeeHome = () => <h1>EmployeeHome</h1>;
-const EmployeeJobs = () => <h1>EmployeeJobs</h1>;
+
+//const EmployeeJobs = () => <h1>EmployeeJobs</h1>;
+import EmployeeJobs from "./features/employee/Jobs";
+
 const EmployeeJobDetail = () => <h1>EmployeeJobDetail</h1>;
 const EmployeeSchedule = () => <h1>EmployeeSchedule</h1>;
 const AdminHome = () => <h1>AdminHome</h1>;
