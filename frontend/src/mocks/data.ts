@@ -117,7 +117,7 @@ export const mockJobs: Job[] = [
   clientName: "Nimal Perera",
   employeeId: "e1",
   employeeName: "Asha Fernando",
-  startTime: "2026-11-04T09:00:00",   // yesterday → Start is enabled
+  startTime: "2026-11-04T09:00:00",   
   endTime:   "2026-11-04T10:00:00",
   state: "SCHEDULE_CONFIRMED",
 },
@@ -128,7 +128,7 @@ export const mockJobs: Job[] = [
   clientName: "Amal Perera",
   employeeId: "e1",
   employeeName: "Asha Fernando",
-  startTime: "2026-12-25T14:00:00",   // future → Start is disabled
+  startTime: "2026-12-25T14:00:00",   
   endTime:   "2026-12-25T15:00:00",
   state: "SCHEDULE_CONFIRMED",
 },
