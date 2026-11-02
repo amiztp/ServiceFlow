@@ -18,34 +18,18 @@ interface QuotationItem {
   unitPrice: number;
 }
 
+import { mockRequests } from "../../mocks/data";
+
 const statusMap = (s: QuotationState): "awaiting" | "approved" | "declined" => {
   if (s === "APPROVED") return "approved";
   if (s === "DECLINED") return "declined";
   return "awaiting";
 };
 
-const mockRequests = {
-  r1: {
-    clientName: "Nimal Perera",
-    serviceName: "Basic Inspection",
-    description: "Inspect wiring in 3-bedroom house",
-    address: "45 Galle Rd, Colombo 03",
-    preferredDate: "2026-11-10",
-  },
-  r2: {
-    clientName: "Kamala Silva",
-    serviceName: "AC Service",
-    description: "Two split AC units need cleaning",
-    address: "12 Kandy Rd, Kadawatha",
-    preferredDate: "2026-11-12",
-  },
-};
-
 export default function QuoteBuilder() {
   const { requestId } = useParams();
   const navigate = useNavigate();
-  const req = mockRequests[requestId as keyof typeof mockRequests];
-
+const req = mockRequests.find(r => r.id === requestId);
   if (!req) {
     return <p>Request not found</p>;
   }
