@@ -23,7 +23,10 @@ import QuoteBuilder from "./features/manager/QuoteBuilder";
 import ManagerJobs from "./features/manager/Jobs";
 
 const ManagerSchedule = () => <h1>ManagerSchedule</h1>;
-const ManagerInvoices = () => <h1>ManagerInvoices</h1>;
+
+//const ManagerInvoices = () => <h1>ManagerInvoices</h1>;
+import Invoices from "./features/manager/Invoices";
+
 const ManagerTeam = () => <h1>ManagerTeam</h1>;
 const PolicyPage = () => <h1>PolicyPage</h1>;
 const EmployeeHome = () => <h1>EmployeeHome</h1>;
@@ -83,7 +86,7 @@ export default function App() {
         <Route path="/manager/quotations/:requestId" element={<Shell role="manager"><QuoteBuilder /></Shell>} />
         <Route path="/manager/jobs" element={<Shell role="manager"><ManagerJobs /></Shell>} />
         <Route path="/manager/schedule" element={<Shell role="manager"><ManagerSchedule /></Shell>} />
-        <Route path="/manager/invoices" element={<Shell role="manager"><ManagerInvoices /></Shell>} />
+        <Route path="/manager/invoices" element={<Shell role="manager"><Invoices /></Shell>} />
         <Route path="/manager/ai" element={<Shell role="manager"><PolicyPage /></Shell>} />
         <Route path="/manager/team" element={<Shell role="manager"><ManagerTeam /></Shell>} />
 
