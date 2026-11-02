@@ -142,4 +142,49 @@ export const mockAvailableSlots = [
   "2026-11-12T15:00:00",
 ];
 
+export type InvoiceState = "UNPAID" | "PAID";
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  jobId: string;
+  clientName: string;
+  serviceName: string;
+  total: number;
+  state: InvoiceState;
+  paymentMethod?: string;
+  paidAt?: string;
+}
+
+export const mockInvoices: Invoice[] = [
+  {
+    id: "i1",
+    invoiceNumber: "INV-2026-001",
+    jobId: "j1",
+    clientName: "Ruwan Dias",
+    serviceName: "Basic Inspection",
+    total: 3000.0,
+    state: "UNPAID",
+  },
+  {
+    id: "i2",
+    invoiceNumber: "INV-2026-002",
+    jobId: "j2",
+    clientName: "Kamala Silva",
+    serviceName: "AC Service",
+    total: 4500.0,
+    state: "UNPAID",
+  },
+  {
+    id: "i3",
+    invoiceNumber: "INV-2026-003",
+    jobId: "j0",
+    clientName: "Amal Perera",
+    serviceName: "Basic Inspection",
+    total: 3000.0,
+    state: "PAID",
+    paymentMethod: "Cash",
+    paidAt: "2026-11-01T14:30:00",
+  },
+];
 
