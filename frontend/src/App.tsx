@@ -14,7 +14,11 @@ type Role = "manager" | "employee" | "admin";
 const ManagerHome = () => <h1>ManagerHome</h1>;
 //const RequestInbox = () => <h1>RequestInbox</h1>;
 import RequestInbox from "./features/manager/Requests";
-const QuoteBuilder = () => <h1>QuoteBuilder</h1>;
+
+//const QuoteBuilder = () => <h1>QuoteBuilder</h1>;
+import QuoteBuilder from "./features/manager/QuoteBuilder";
+
+
 const ManagerJobs = () => <h1>ManagerJobs</h1>;
 const ManagerSchedule = () => <h1>ManagerSchedule</h1>;
 const ManagerInvoices = () => <h1>ManagerInvoices</h1>;
