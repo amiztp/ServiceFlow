@@ -110,7 +110,28 @@ export const mockJobs: Job[] = [
     startTime: "2026-11-10T10:00:00",
     endTime: "2026-11-10T11:00:00",
     state: "SCHEDULE_PROPOSED",
-  },
+  },{
+  id: "j4",
+  requestId: "r1",
+  serviceName: "Basic Inspection",
+  clientName: "Nimal Perera",
+  employeeId: "e1",
+  employeeName: "Asha Fernando",
+  startTime: "2026-11-04T09:00:00",   // yesterday → Start is enabled
+  endTime:   "2026-11-04T10:00:00",
+  state: "SCHEDULE_CONFIRMED",
+},
+{
+  id: "j5",
+  requestId: "r5",
+  serviceName: "AC Service",
+  clientName: "Amal Perera",
+  employeeId: "e1",
+  employeeName: "Asha Fernando",
+  startTime: "2026-12-25T14:00:00",   // future → Start is disabled
+  endTime:   "2026-12-25T15:00:00",
+  state: "SCHEDULE_CONFIRMED",
+},
 ];
 
 // 1-hour slots, weekdays, 09:00-17:00 (last start 16:00)
@@ -120,3 +141,5 @@ export const mockAvailableSlots = [
   "2026-11-11T10:00:00",
   "2026-11-12T15:00:00",
 ];
+
+
