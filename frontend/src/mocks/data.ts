@@ -39,4 +39,13 @@ export const mockRequests: ServiceRequest[] = [
     preferredDate: "2026-11-08",
     state: "QUOTED",
   },
+  {
+  id: "r4",
+  clientName: "Test Shared Client",
+  serviceName: "Test Service",
+  description: "This proves data is shared",
+  address: "1 Test Lane",
+  preferredDate: "2026-11-20",
+  state: "NEW",
+},
 ];
