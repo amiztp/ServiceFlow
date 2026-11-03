@@ -133,6 +133,18 @@ export default function ManagerDashboard() {
           <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/team")}>
             Team
           </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/employee")}> 
+            Employee dashboard
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/employee/jobs")}>
+            Employee jobs
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/employee/schedule")}>
+            Employee schedule
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/admin")}> 
+            Admin dashboard
+          </ActionButton>
           <ActionButton variant="stub" size="small" onClick={() => navigate("/admin/companies")}>
             Admin companies
           </ActionButton>
