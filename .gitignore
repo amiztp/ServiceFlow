@@ -33,3 +33,13 @@ backend/storage/generated/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local secrets
+.env
+.env.*
+!.env.example
