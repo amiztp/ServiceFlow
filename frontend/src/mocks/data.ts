@@ -249,3 +249,14 @@ export const mockCompanies: Company[] = [
   },
 ];
 
+// helper for the dashboard
+export const dashboardStats = () => {
+  return {
+    newRequests: mockRequests.filter(r => r.state === "NEW").length,
+    jobsInProgress: mockJobs.filter(j => j.state === "IN_PROGRESS" || j.state === "SCHEDULE_CONFIRMED").length,
+    unpaidInvoices: mockInvoices.filter(i => i.state === "UNPAID").length,
+    unpaidTotal: mockInvoices
+      .filter(i => i.state === "UNPAID")
+      .reduce((s, i) => s + i.total, 0),
+  };
+};

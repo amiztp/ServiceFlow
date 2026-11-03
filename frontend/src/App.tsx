@@ -11,7 +11,9 @@ import { AppSidebar, roleNav } from "./components";
 
 type Role = "manager" | "employee" | "admin";
 
-const ManagerHome = () => <h1>ManagerHome</h1>;
+//const ManagerHome = () => <h1>ManagerHome</h1>;
+import ManagerDashboard from "./features/manager/Dashboard";
+
 //const RequestInbox = () => <h1>RequestInbox</h1>;
 import RequestInbox from "./features/manager/Requests";
 
@@ -85,7 +87,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/manager" element={<Shell role="manager"><ManagerHome /></Shell>} />
+        <Route path="/manager" element={<Shell role="manager"><ManagerDashboard /></Shell>} />
         <Route path="/manager/requests" element={<Shell role="manager"><RequestInbox /></Shell>} />
         <Route path="/manager/quotations" element={<Shell role="manager"><RequestInbox /></Shell>} />
         <Route path="/manager/quotations/:requestId" element={<Shell role="manager"><QuoteBuilder /></Shell>} />
