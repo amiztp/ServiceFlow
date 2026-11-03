@@ -135,6 +135,19 @@ export const mockJobs: Job[] = [
   endTime:   "2026-12-25T15:00:00",
   state: "SCHEDULE_CONFIRMED",
 },
+
+{
+  id: "j6",
+  requestId: "r6",
+  serviceName: "Basic Inspection",
+  clientName: "Sanjay Perera",
+  employeeId: "e1",
+  employeeName: "Asha Fernando",
+  startTime: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
+  endTime: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
+  state: "SCHEDULE_CONFIRMED",
+},
+
 ];
 
 // 1-hour slots, weekdays, 09:00-17:00 (last start 16:00)
