@@ -24,7 +24,8 @@ import QuoteBuilder from "./features/manager/QuoteBuilder";
 //const ManagerJobs = () => <h1>ManagerJobs</h1>;
 import ManagerJobs from "./features/manager/Jobs";
 
-const ManagerSchedule = () => <h1>ManagerSchedule</h1>;
+//const ManagerSchedule = () => <h1>ManagerSchedule</h1>;
+import ManagerSchedule from "./features/manager/Schedule";
 
 //const ManagerInvoices = () => <h1>ManagerInvoices</h1>;
 import Invoices from "./features/manager/Invoices";

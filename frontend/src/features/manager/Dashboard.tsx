@@ -94,6 +94,9 @@ export default function ManagerDashboard() {
           <ActionButton variant="stub" onClick={() => navigate("/manager/jobs")}>
             Schedule a job
           </ActionButton>
+          <ActionButton variant="stub" onClick={() => navigate("/manager/schedule")}>
+            View schedule
+          </ActionButton>
           <ActionButton variant="stub" onClick={() => navigate("/manager/team")}>
             Manage team
           </ActionButton>
