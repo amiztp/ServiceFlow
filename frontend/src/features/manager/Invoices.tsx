@@ -28,11 +28,15 @@ export default function Invoices() {
   const [paying, setPaying] = useState<Invoice | null>(null);
   const [method, setMethod] = useState("Cash");
 
-  const unpaidTotal = invoices
-    .filter((invoice) => invoice.state === "UNPAID")
-    .reduce((sum, invoice) => sum + invoice.total, 0);
-  const paidCount = invoices.filter((invoice) => invoice.state === "PAID").length;
+  const unpaidInvoices = invoices.filter(i => i.state === "UNPAID");
+const paidInvoices = invoices.filter(i => i.state === "PAID");
 
+const unpaidTotal = unpaidInvoices.reduce((s, i) => s + i.total, 0);
+const paidTotal = paidInvoices.reduce((s, i) => s + i.total, 0);
+const totalBilled = unpaidTotal + paidTotal;
+
+const unpaidCount = unpaidInvoices.length;
+const paidCount = paidInvoices.length;
   const recordPayment = () => {
     if (!paying) return;
     setInvoices((current) =>
@@ -68,7 +72,34 @@ export default function Invoices() {
           <p className="sf-mono text-[11px] text-text-secondary">TOTAL</p>
           <strong className="sf-display sf-tabular block text-xl mt-1">{invoices.length}</strong>
         </div>
-      </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="sf-card p-4">
+                <p className="sf-mono text-[11px] text-text-secondary">UNPAID TOTAL</p>
+                <strong className="sf-display sf-tabular block text-xl mt-1">
+                LKR {unpaidTotal.toFixed(2)}
+                </strong>
+                <p className="text-xs text-text-secondary mt-1">{unpaidCount} invoices</p>
+            </div>
+            <div className="sf-card p-4">
+                <p className="sf-mono text-[11px] text-text-secondary">PAID TOTAL</p>
+                <strong className="sf-display sf-tabular block text-xl mt-1">
+                LKR {paidTotal.toFixed(2)}
+                </strong>
+                <p className="text-xs text-text-secondary mt-1">{paidCount} invoices</p>
+            </div>
+            <div className="sf-card p-4">
+                <p className="sf-mono text-[11px] text-text-secondary">TOTAL BILLED</p>
+                <strong className="sf-display sf-tabular block text-xl mt-1">
+                LKR {totalBilled.toFixed(2)}
+                </strong>
+                <p className="text-xs text-text-secondary mt-1">{invoices.length} invoices</p>
+            </div>
+            </div>
+
+
+
+    </div>
 
       <ResponsiveTable
         caption="Invoices"
