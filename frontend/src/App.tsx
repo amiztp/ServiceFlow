@@ -51,6 +51,8 @@ const AdminHome = () => <h1>AdminHome</h1>;
 //const AdminCompanies = () => <h1>AdminCompanies</h1>;
 import AdminCompanies from "./features/admin/Companies";
 
+import AdminCatalog from "./features/admin/Catalog";
+
 const AdminSettings = () => <h1>AdminSettings</h1>;
 
 function Shell({ role, children }: { role: Role; children: ReactNode }) {
@@ -108,6 +110,7 @@ export default function App() {
 
         <Route path="/admin" element={<Shell role="admin"><AdminHome /></Shell>} />
         <Route path="/admin/companies" element={<Shell role="admin"><AdminCompanies /></Shell>} />
+        <Route path="/admin/catalog" element={<Shell role="admin"><AdminCatalog /></Shell>} />
         <Route path="/admin/settings" element={<Shell role="admin"><AdminSettings /></Shell>} />
 
         <Route path="/" element={<Navigate to="/manager" replace />} />
