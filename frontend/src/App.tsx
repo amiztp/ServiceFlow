@@ -36,6 +36,7 @@ import ManagerTeam from "./features/manager/Team";
 //const PolicyPage = () => <h1>PolicyPage</h1>;
 import PolicyPage from "./features/manager/PolicyPage";
 
+import CompanyProfilePage from "./features/manager/CompanyProfile";
 
 const EmployeeHome = () => <h1>EmployeeHome</h1>;
 
@@ -101,6 +102,7 @@ export default function App() {
         <Route path="/manager/schedule" element={<Shell role="manager"><ManagerSchedule /></Shell>} />
         <Route path="/manager/invoices" element={<Shell role="manager"><Invoices /></Shell>} />
         <Route path="/manager/ai" element={<Shell role="manager"><PolicyPage /></Shell>} />
+        <Route path="/manager/company" element={<Shell role="manager"><CompanyProfilePage /></Shell>} />
         <Route path="/manager/team" element={<Shell role="manager"><ManagerTeam /></Shell>} />
 
         <Route path="/employee" element={<Shell role="employee"><EmployeeHome /></Shell>} />

@@ -313,3 +313,32 @@ export const mockServices: Service[] = [
   { id: "s3", name: "Deep Cleaning",    description: "Full house deep clean", isActive: true },
   { id: "s4", name: "Plumbing Repair",  description: "Pipe and tap repairs", isActive: false },
 ];
+
+export interface CompanyProfile {
+  name: string;
+  description: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+export const mockCompanyProfile: CompanyProfile = {
+  name: "BrightFix",
+  description: "Home repairs and maintenance services in Colombo district",
+  email: "hello@brightfix.lk",
+  phone: "+94 11 555 0100",
+  address: "45 Galle Rd, Colombo 03",
+};
+
+export interface OfferedService {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  startingPrice: number;
+  isActive: boolean;
+}
+
+export const mockOfferedServices: OfferedService[] = [
+  { id: "os1", serviceId: "s1", serviceName: "Basic Inspection", startingPrice: 3000, isActive: true },
+  { id: "os2", serviceId: "s2", serviceName: "AC Service",       startingPrice: 4500, isActive: true },
+];
