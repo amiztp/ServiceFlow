@@ -297,3 +297,19 @@ export interface AiAnswer {
   source?: string;
   page?: number;
 }
+
+
+// mock servisec
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+}
+
+export const mockServices: Service[] = [
+  { id: "s1", name: "Basic Inspection", description: "1-hour property inspection", isActive: true },
+  { id: "s2", name: "AC Service",       description: "Split AC cleaning and gas top-up", isActive: true },
+  { id: "s3", name: "Deep Cleaning",    description: "Full house deep clean", isActive: true },
+  { id: "s4", name: "Plumbing Repair",  description: "Pipe and tap repairs", isActive: false },
+];

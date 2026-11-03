@@ -1,20 +1,13 @@
 import { useState } from "react";
-import {
-  ActionButton,
-  StatusBadge,
-  JobTicketCard,
-  SelectField,
-  EmptyState,
-} from "../../components";
-import {
-  mockJobs,
-  mockEmployees,
-  mockAvailableSlots,
-  type Job,
-  type JobState,
-} from "../../mocks/data";
+import { useNavigate } from "react-router-dom";
+import { JobTicketCard, EmptyState } from "../../components";
+import { mockJobs, type Job, type JobState } from "../../mocks/data";
 
-const jobStatus = (s: JobState): "awaiting" | "scheduled" | "in_progress" | "completed" => {
+type Tab = "today" | "upcoming" | "history";
+
+const jobStatus = (
+  s: JobState
+): "awaiting" | "scheduled" | "in_progress" | "completed" => {
   if (s === "JOB_CREATED") return "awaiting";
   if (s === "SCHEDULE_PROPOSED") return "awaiting";
   if (s === "SCHEDULE_CONFIRMED") return "scheduled";
@@ -22,123 +15,150 @@ const jobStatus = (s: JobState): "awaiting" | "scheduled" | "in_progress" | "com
   return "completed";
 };
 
-const formatSlot = (iso: string) =>
-  new Date(iso).toLocaleString("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const formatSlot = (iso?: string) =>
+  iso
+    ? new Date(iso).toLocaleString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Not scheduled";
 
-export default function ManagerJobs() {
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
-  const [error, setError] = useState<string | null>(null);
+const isSameDay = (iso: string, ref: Date) => {
+  const d = new Date(iso);
+  return (
+    d.getFullYear() === ref.getFullYear() &&
+    d.getMonth() === ref.getMonth() &&
+    d.getDate() === ref.getDate()
+  );
+};
 
-  const assign = (jobId: string, employeeId: string) => {
-    const emp = mockEmployees.find((e) => e.id === employeeId);
-    if (!emp) return;
-    if (!emp.isActive) {
-      setError(`${emp.fullName} is not active and cannot be assigned.`);
-      return;
-    }
-    setJobs((current) =>
-      current.map((job) =>
-        job.id === jobId ? { ...job, employeeId: emp.id, employeeName: emp.fullName } : job,
-      ),
+export default function EmployeeJobs() {
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>("today");
+
+  // Filter to only this employee's jobs
+  const myJobs: Job[] = mockJobs.filter((j) => j.employeeId === "e1");
+
+  const now = new Date();
+
+  const todayJobs = myJobs.filter(
+    (j) =>
+      j.startTime &&
+      isSameDay(j.startTime, now) &&
+      (j.state === "SCHEDULE_CONFIRMED" ||
+        j.state === "IN_PROGRESS" ||
+        j.state === "COMPLETED")
+  );
+
+  const upcomingJobs = myJobs
+    .filter(
+      (j) =>
+        j.state === "SCHEDULE_CONFIRMED" &&
+        j.startTime &&
+        new Date(j.startTime) > now &&
+        !isSameDay(j.startTime, now)
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime()
     );
-    setError(null);
+
+  const historyJobs = myJobs
+    .filter((j) => j.state === "COMPLETED")
+    .sort(
+      (a, b) =>
+        new Date(b.startTime ?? 0).getTime() -
+        new Date(a.startTime ?? 0).getTime()
+    );
+
+  const buckets: Record<Tab, Job[]> = {
+    today: todayJobs,
+    upcoming: upcomingJobs,
+    history: historyJobs,
   };
 
-  const proposeSlot = (jobId: string, start: string) => {
-    const end = new Date(new Date(start).getTime() + 60 * 60 * 1000).toISOString();
-    setJobs((current) =>
-      current.map((job) =>
-        job.id === jobId ? { ...job, startTime: start, endTime: end, state: "SCHEDULE_PROPOSED" } : job,
-      ),
-    );
-    setError(null);
+  const counts: Record<Tab, number> = {
+    today: todayJobs.length,
+    upcoming: upcomingJobs.length,
+    history: historyJobs.length,
   };
+
+  const list = buckets[tab];
 
   return (
     <div className="space-y-6">
-      <h1 className="sf-display text-2xl font-bold">Jobs & Scheduling</h1>
+      <div>
+        <h1 className="sf-display text-2xl font-bold">My Day</h1>
+        <p className="text-sm text-text-secondary mt-1">
+          Your assigned jobs, grouped by when they happen.
+        </p>
+      </div>
 
-      {error && (
-        <div className="rounded-docket border border-[#B93832] bg-[#FDF2F2] p-3 text-sm text-[#B93832]">
-          {error}
-        </div>
-      )}
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-line">
+        {(["today", "upcoming", "history"] as const).map((t) => {
+          const active = tab === t;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              aria-pressed={active}
+              className={`relative px-4 py-2 text-sm font-medium capitalize transition-colors ${
+                active
+                  ? "border-b-2 border-graphite text-graphite"
+                  : "text-text-secondary hover:text-graphite"
+              }`}
+            >
+              {t}
+              {counts[t] > 0 && (
+                <span
+                  className={`ml-2 rounded-full px-1.5 py-0.5 text-[10px] ${
+                    active
+                      ? "bg-graphite text-white"
+                      : "bg-paper text-text-secondary"
+                  }`}
+                >
+                  {counts[t]}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-      {jobs.length === 0 ? (
-        <EmptyState title="No jobs yet" description="Approved quotations will become jobs here." />
+      {/* Tab content */}
+      {list.length === 0 ? (
+        <EmptyState
+          title={`No ${tab} jobs`}
+          description={
+            tab === "today"
+              ? "No jobs scheduled for today."
+              : tab === "upcoming"
+              ? "No upcoming jobs assigned yet."
+              : "Completed jobs will appear here."
+          }
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {jobs.map((job) => (
-            <JobTicketCard
+          {list.map((job) => (
+            <div
               key={job.id}
-              id={job.id}
-              title={job.serviceName}
-              status={jobStatus(job.state)}
-              client={job.clientName}
-              schedule={
-                job.startTime
-                  ? formatSlot(job.startTime)
-                  : job.state === "SCHEDULE_PROPOSED"
-                    ? "Awaiting client approval"
-                    : "Not scheduled"
-              }
-              employee={job.employeeName ?? "Unassigned"}
+              onClick={() => navigate(`/employee/jobs/${job.id}`)}
+              style={{ cursor: "pointer" }}
             >
-              {job.state === "JOB_CREATED" && !job.employeeId && (
-                <div className="space-y-2">
-                  <p className="text-xs text-text-secondary">Step 1 — Assign an active employee</p>
-                  <SelectField
-                    label="Employee"
-                    value=""
-                    onChange={(e) => e.target.value && assign(job.id, e.target.value)}
-                  >
-                    <option value="">— Select employee —</option>
-                    {mockEmployees
-                      .filter((emp) => emp.isActive)
-                      .map((emp) => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.fullName}
-                        </option>
-                      ))}
-                  </SelectField>
-                </div>
-              )}
-
-              {job.state === "JOB_CREATED" && job.employeeId && (
-                <div className="space-y-2">
-                  <p className="text-xs text-text-secondary">
-                    Step 2 — Propose a 1-hour slot for {job.employeeName}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {mockAvailableSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => proposeSlot(job.id, slot)}
-                        className="rounded-docket border border-line px-3 py-1.5 text-xs hover:bg-paper"
-                      >
-                        {formatSlot(slot)}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-text-secondary">
-                    Availability is a hint — backend confirms reservations.
-                  </p>
-                </div>
-              )}
-
-              {job.state === "SCHEDULE_PROPOSED" && (
-                <p className="text-sm text-[#6E5600]">
-                  Slot proposed. Waiting for client to approve.
-                </p>
-              )}
-            </JobTicketCard>
+              <JobTicketCard
+                id={job.id}
+                title={job.serviceName}
+                status={jobStatus(job.state)}
+                client={job.clientName}
+                schedule={formatSlot(job.startTime)}
+                employee={job.employeeName ?? "Unassigned"}
+              />
+            </div>
           ))}
         </div>
       )}
