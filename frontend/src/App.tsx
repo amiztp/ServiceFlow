@@ -27,7 +27,9 @@ const ManagerSchedule = () => <h1>ManagerSchedule</h1>;
 //const ManagerInvoices = () => <h1>ManagerInvoices</h1>;
 import Invoices from "./features/manager/Invoices";
 
-const ManagerTeam = () => <h1>ManagerTeam</h1>;
+//const ManagerTeam = () => <h1>ManagerTeam</h1>;
+import ManagerTeam from "./features/manager/Team";
+
 const PolicyPage = () => <h1>PolicyPage</h1>;
 const EmployeeHome = () => <h1>EmployeeHome</h1>;
 
