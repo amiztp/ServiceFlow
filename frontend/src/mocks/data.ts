@@ -260,3 +260,27 @@ export const dashboardStats = () => {
       .reduce((s, i) => s + i.total, 0),
   };
 };
+
+export type PolicyState = "NONE" | "PROCESSING" | "READY" | "FAILED";
+
+export interface PolicyStatus {
+  state: PolicyState;
+  activeVersion?: number;
+  filename?: string;
+  uploadedAt?: string;
+  message?: string;
+}
+
+export const mockPolicyStatus: PolicyStatus = {
+  state: "READY",
+  activeVersion: 1,
+  filename: "brightfix-policy-v1.pdf",
+  uploadedAt: "2026-10-28",
+};
+
+export interface AiAnswer {
+  status: "OK" | "NO_POLICY" | "INSUFFICIENT_EVIDENCE" | "UNAVAILABLE";
+  answer?: string;
+  source?: string;
+  page?: number;
+}
