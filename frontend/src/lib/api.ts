@@ -17,7 +17,15 @@ export async function api<T>(path: string, method = 'GET', body?: unknown): Prom
   if (!response.ok) {
     const raw = data?.field_errors ?? {}
     const fields = Object.fromEntries(Object.entries(raw).map(([key, value]) => [key, Array.isArray(value) ? value.join(' ') : String(value)]))
-    throw new ApiError(data?.message || 'This action could not be completed. Refresh and try again.', response.status, fields)
+    if (Array.isArray(data?.detail)) {
+      for (const issue of data.detail) {
+        const key = issue.loc?.filter((part: unknown) => part !== 'body').join('.')
+        if (key && typeof issue.msg === 'string') fields[key] = issue.msg
+      }
+    }
+    const message = data?.message || (typeof data?.detail === 'string' ? data.detail : undefined)
+      || (response.status === 422 ? 'Please check the highlighted fields.' : 'This action could not be completed. Refresh and try again.')
+    throw new ApiError(message, response.status, fields)
   }
   return data as T
 }

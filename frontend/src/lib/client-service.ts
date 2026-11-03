@@ -1,5 +1,13 @@
-import { api, ApiError, demoMode } from './api'
-import type { Company, Invoice, Job, PolicyAnswer, Quote, RequestInput, RequestRecord, Session } from '../types/client'
+import { api, ApiError, demoMode, setAccessToken } from './api'
+import type { Company, Invoice, Job, PolicyAnswer, Quote, RequestInput, RequestRecord, Session, User, Role } from '../types/client'
+
+type BackendUser = Omit<User, 'id' | 'role'> & { id: string | number; role: string }
+function normalizeUser(value: BackendUser): User {
+  const roles: Record<string, Role> = { CLIENT: 'client', COMPANY_MANAGER: 'manager', EMPLOYEE: 'employee', SYSTEM_ADMIN: 'admin', client: 'client', manager: 'manager', employee: 'employee', admin: 'admin' }
+  const role = roles[value.role]
+  if (!role) throw new ApiError('This account role is not supported by the current release.', 403)
+  return { ...value, id: String(value.id), role }
+}
 
 const companies: Company[] = [
   { id: 'brightfix', name: 'BrightFix', category: 'Electrical & maintenance', location: 'Colombo', description: 'Practical help for the spaces you depend on. Book electrical inspections and everyday maintenance with our company team.', phone: '+94 11 234 5678', email: 'hello@example.com', offerings: [{ id: 'inspection', name: 'Basic inspection', starting_price: 3000, active: true }, { id: 'electrical', name: 'Electrical maintenance', starting_price: 4500, active: true }] },
@@ -34,17 +42,23 @@ export const clientService = {
   async companies(): Promise<Company[]> { if (!demoMode) return api('/companies'); await wait(); return copy(companies) },
   async company(id: string): Promise<Company> { if (!demoMode) return api(`/companies/${encodeURIComponent(id)}`); await wait(); return copy(find(companies, id)) },
   async login(email: string, password: string): Promise<Session> {
-    if (!demoMode) return api('/auth/login', 'POST', { email, password })
+    if (!demoMode) {
+      const result = await api<{ access_token: string; user?: BackendUser }>('/auth/login', 'POST', { email, password })
+      setAccessToken(result.access_token)
+      try { return { access_token: result.access_token, user: result.user ? normalizeUser(result.user) : await clientService.me() } }
+      catch (cause) { setAccessToken(null); throw cause }
+    }
     await wait()
     if (email !== 'nimal@example.com' || password !== 'DemoClient123!') throw new ApiError('Use the sample account shown below to enter the demo.', 401)
     return { access_token: 'demo-only', user: { id: 'demo-client', name: 'Nimal Fernando', role: 'client' } }
   },
   async register(kind: string, body: Record<string, string>): Promise<Session | null> {
-    if (!demoMode) { await api(`/auth/register/${kind}`, 'POST', body); return null }
+    if (!demoMode) { await api(kind === 'client' ? '/auth/register' : '/auth/register/company', 'POST', body); return null }
     await wait()
     return { access_token: 'demo-only', user: { id: 'demo-client', name: body.name, role: kind === 'company' ? 'manager' : 'client', ...(kind === 'company' ? { company_status: 'PENDING' as const } : {}) } }
   },
   async changePassword(password: string) { if (!demoMode) return api('/auth/change-password', 'POST', { new_password: password }); await wait() },
+  async me(): Promise<User> { return normalizeUser(await api<BackendUser>('/auth/me')) },
   async requests(): Promise<RequestRecord[]> { if (!demoMode) return api('/requests'); await wait(); return copy(requests) },
   async request(id: string): Promise<RequestRecord> { if (!demoMode) return api(`/requests/${encodeURIComponent(id)}`); await wait(); return copy(find(requests, id)) },
   async createRequest(input: RequestInput): Promise<RequestRecord> {
