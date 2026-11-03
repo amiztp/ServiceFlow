@@ -188,3 +188,60 @@ export const mockInvoices: Invoice[] = [
   },
 ];
 
+export type CompanyState = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface Company {
+  id: string;
+  name: string;
+  description: string;
+  email: string;
+  phone: string;
+  location: string;
+  registeredAt: string;
+  state: CompanyState;
+  rejectionReason?: string;
+}
+
+export const mockCompanies: Company[] = [
+  {
+    id: "c1",
+    name: "BrightFix",
+    description: "Home repairs and maintenance",
+    email: "hello@brightfix.lk",
+    phone: "+94 11 555 0100",
+    location: "Colombo 03",
+    registeredAt: "2026-10-28",
+    state: "PENDING",
+  },
+  {
+    id: "c2",
+    name: "CoolAir LK",
+    description: "AC installation and servicing",
+    email: "hi@coolair.lk",
+    phone: "+94 11 555 0200",
+    location: "Kadawatha",
+    registeredAt: "2026-10-30",
+    state: "PENDING",
+  },
+  {
+    id: "c3",
+    name: "CleanPro",
+    description: "Deep cleaning services",
+    email: "hello@cleanpro.lk",
+    phone: "+94 11 555 0300",
+    location: "Nugegoda",
+    registeredAt: "2026-10-25",
+    state: "APPROVED",
+  },
+  {
+    id: "c4",
+    name: "FixItFast",
+    description: "Plumbing and electrical",
+    email: "team@fixitfast.lk",
+    phone: "+94 11 555 0400",
+    location: "Dehiwala",
+    registeredAt: "2026-10-15",
+    state: "REJECTED",
+    rejectionReason: "Missing business registration documents",
+  },
+];
