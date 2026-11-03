@@ -1,0 +1,11 @@
+export type Role = 'client' | 'manager' | 'employee' | 'admin'
+export type User = { id: string; name: string; role: Role; company_status?: 'PENDING' | 'REJECTED' | 'APPROVED'; must_change_password?: boolean }
+export type Offering = { id: string; name: string; starting_price: number; active: boolean }
+export type Company = { id: string; name: string; category: string; location: string; description: string; phone: string; email: string; offerings: Offering[] }
+export type RequestRecord = { id: string; client_id: string; company_id: string; company_name: string; service: string; description: string; address: string; preferred_date: string; status: 'NEW' | 'QUOTED' | 'CONVERTED' | 'CANCELLED' | 'DECLINED' | 'REJECTED'; quotation_id?: string }
+export type Quote = { id: string; request_id: string; company_name: string; service: string; status: 'DRAFT' | 'SENT' | 'APPROVED' | 'DECLINED' | 'CANCELLED'; items: { description: string; quantity: number; unit_price: number }[]; total: number }
+export type Job = { id: string; request_id: string; company_name: string; service: string; status: 'JOB_CREATED' | 'SCHEDULE_PROPOSED' | 'SCHEDULE_CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'; appointment?: string; address: string }
+export type Invoice = { id: string; job_id: string; company_name: string; service: string; total: number; status: 'UNPAID' | 'PAID'; items: Quote['items'] }
+export type PolicyAnswer = { status: 'ANSWERED' | 'NO_POLICY' | 'INSUFFICIENT_EVIDENCE' | 'UNAVAILABLE'; answer: string; citations: { policy_id: string; policy_version: string; title: string; page: number; url: string }[] }
+export type Session = { access_token: string; user: User }
+export type RequestInput = { company_id: string; company_service_id: string; description: string; address: string; preferred_date: string }
