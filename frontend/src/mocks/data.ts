@@ -81,6 +81,9 @@ export const mockEmployees: Employee[] = [
   { id: "e1", fullName: "Asha Fernando", email: "asha@brightfix.lk", isActive: true, hasActiveJobs: true },
   { id: "e2", fullName: "Ravi Perera", email: "ravi@brightfix.lk", isActive: true, hasActiveJobs: false },
   { id: "e3", fullName: "Maya Silva", email: "maya@brightfix.lk", isActive: false, hasActiveJobs: false },
+  { id: "e1", fullName: "Asha Fernando", email: "asha@brightfix.lk", isActive: true, hasActiveJobs: true },
+  { id: "e2", fullName: "Ravi Perera",   email: "ravi@brightfix.lk", isActive: true, hasActiveJobs: false },
+  { id: "e3", fullName: "Maya Silva",    email: "maya@brightfix.lk", isActive: false, hasActiveJobs: false },
 ];
 
 export const mockJobs: Job[] = [
@@ -245,3 +248,4 @@ export const mockCompanies: Company[] = [
     rejectionReason: "Missing business registration documents",
   },
 ];
+
