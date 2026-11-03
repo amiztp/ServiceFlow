@@ -102,6 +102,45 @@ export default function ManagerDashboard() {
           </ActionButton>
         </div>
       </SurfaceCard>
+
+      <SurfaceCard className="p-5 space-y-3">
+        <h2 className="font-semibold">All routes</h2>
+        <div className="flex flex-wrap gap-2">
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager")}>
+            Dashboard
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/requests")}>
+            Requests
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/quotations")}>
+            Quotations
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/jobs")}>
+            Jobs
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/schedule")}>
+            Schedule
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/invoices")}>
+            Invoices
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/ai")}>
+            Flow AI
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/company")}>
+            Company
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/manager/team")}>
+            Team
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/admin/companies")}>
+            Admin companies
+          </ActionButton>
+          <ActionButton variant="stub" size="small" onClick={() => navigate("/admin/catalog")}>
+            Catalog
+          </ActionButton>
+        </div>
+      </SurfaceCard>
     </div>
   );
 }
