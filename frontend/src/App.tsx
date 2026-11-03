@@ -33,7 +33,10 @@ import Invoices from "./features/manager/Invoices";
 //const ManagerTeam = () => <h1>ManagerTeam</h1>;
 import ManagerTeam from "./features/manager/Team";
 
-const PolicyPage = () => <h1>PolicyPage</h1>;
+//const PolicyPage = () => <h1>PolicyPage</h1>;
+import PolicyPage from "./features/manager/PolicyPage";
+
+
 const EmployeeHome = () => <h1>EmployeeHome</h1>;
 
 //const EmployeeJobs = () => <h1>EmployeeJobs</h1>;
