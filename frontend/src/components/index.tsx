@@ -144,7 +144,7 @@ export function AppSidebar({ items, activeHref, userName, subtitle, onNavigate }
   items:NavItem[];activeHref:string;userName:string;subtitle:string;onNavigate?:(href:string)=>void
 }) {
   const [open,setOpen] = useState(false)
-  return <aside className="sf-dark bg-graphite text-white md:w-[248px] md:shrink-0">
+  return <aside className="sf-dark bg-graphite text-white w-full md:sticky md:top-0 md:h-screen md:w-[248px] md:shrink-0">
     <div className="flex items-center justify-between px-5 py-5"><div className="sf-display flex items-center gap-2.5 font-bold"><span className="sf-mono grid h-8 w-8 place-items-center rounded-docket bg-signal text-xs text-ink">SF</span>ServiceFlow</div>
       <button type="button" className="rounded-docket p-2 md:hidden" aria-label={open?'Close navigation':'Open navigation'} aria-expanded={open} aria-controls="sf-sidebar-nav" onClick={()=>setOpen(!open)}>{open?<X size={20}/>:<Menu size={20}/>}</button></div>
     <nav id="sf-sidebar-nav" aria-label="App navigation" className={cx('px-3 pb-5 md:block',!open && 'hidden')}>

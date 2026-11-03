@@ -77,7 +77,7 @@ function Shell({ role, children }: { role: Role; children: ReactNode }) {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="flex min-h-screen flex-col md:flex-row">
       <AppSidebar
         items={items}
         activeHref={activeHref}
@@ -85,7 +85,9 @@ function Shell({ role, children }: { role: Role; children: ReactNode }) {
         subtitle={subtitleMap[role]}
         onNavigate={(href) => navigate(href)}
       />
-      <main style={{ flex: 1, padding: 24 }}>{children}</main>
+      <main className="flex-1 overflow-x-hidden px-3 py-4 sm:px-5 lg:px-6 xl:px-8">
+        <div className="mx-auto w-full max-w-7xl">{children}</div>
+      </main>
     </div>
   );
 }
