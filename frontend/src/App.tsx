@@ -39,7 +39,10 @@ import EmployeeJobDetail from "./features/employee/JobDetail";
 
 const EmployeeSchedule = () => <h1>EmployeeSchedule</h1>;
 const AdminHome = () => <h1>AdminHome</h1>;
-const AdminCompanies = () => <h1>AdminCompanies</h1>;
+
+//const AdminCompanies = () => <h1>AdminCompanies</h1>;
+import AdminCompanies from "./features/admin/Companies";
+
 const AdminSettings = () => <h1>AdminSettings</h1>;
 
 function Shell({ role, children }: { role: Role; children: ReactNode }) {
