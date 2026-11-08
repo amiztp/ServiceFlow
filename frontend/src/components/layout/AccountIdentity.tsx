@@ -11,6 +11,6 @@ export function AccountIdentity() {
     title={user.name}
   >
     <img src="/images/sample-avatar.svg" alt="Sample profile picture" width={38} height={38} />
-    <span><strong>{user.name}</strong><small>Sample profile picture</small></span>
+    <span><strong>{user.name}</strong></span>
   </Link>
 }
