@@ -4,12 +4,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.api.routes import auth
 
 from app.database import engine
-
+from app.api.routes.policies import router as policies_router
 
 app = FastAPI(
     title="ServiceFlow API",
     version="0.1.0",
 )
+app.include_router(policies_router)
+
 app.include_router(
     auth.router,
     prefix="/auth",
