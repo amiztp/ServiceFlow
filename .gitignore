@@ -44,3 +44,9 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Local scratch scripts
+backend/test_indexing.py
+backend/test_retrieval.py
+backend/test_fusion_local.py
+backend/test_generation_local.py

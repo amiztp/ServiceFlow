@@ -42,7 +42,10 @@ def index_policy(policy_id: int, session: Session) -> int:
 
     # Recheck after PDF processing. This lock serializes retries for this policy.
     locked_policy = session.execute(
-        select(Policy).where(Policy.id == policy_id).with_for_update()
+        select(Policy)
+        .where(Policy.id == policy_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
     ).scalar_one()
 
     if locked_policy.status != "INACTIVE":
