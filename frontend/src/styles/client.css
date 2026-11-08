@@ -83,3 +83,46 @@ input[type="file"] {
 @media (max-width: 640px) {
   .sf-topbar-discover { display: none; }
 }
+
+.sf-account-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: .625rem;
+  min-width: 0;
+  color: var(--sf-ink);
+}
+
+.sf-account-identity img {
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-wash);
+}
+
+.sf-account-identity > span {
+  min-width: 0;
+  max-width: 12rem;
+}
+
+.sf-account-identity strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .8125rem;
+}
+
+.sf-account-identity small {
+  display: block;
+  color: var(--sf-text-2);
+  font-size: .625rem;
+}
+
+@media (max-width: 640px) {
+  .sf-workspace-topbar .sf-breadcrumb { display: none; }
+  .sf-workspace-topbar .sf-client-top-actions { flex: 1; justify-content: space-between; }
+  .sf-account-identity > span { max-width: 7rem; }
+  .sf-account-identity img { width: 34px; height: 34px; }
+  .sf-account-identity strong { font-size: .75rem; }
+  .sf-account-identity small { font-size: .5625rem; }
+}

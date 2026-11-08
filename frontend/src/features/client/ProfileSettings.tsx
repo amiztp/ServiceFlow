@@ -7,6 +7,7 @@ import { demoAccount, requireDemo } from '../../lib/demo-account'
 import { clientService } from '../../lib/client-service'
 
 export function ProfileSettings() {
+  const { user, requestLogout } = useSession()
   const resource = useResource(async () => {
     requireDemo('Profile settings')
     return demoAccount.profile()
@@ -16,6 +17,11 @@ export function ProfileSettings() {
     <Resource {...resource} retry={resource.reload}>
       {resource.data && <ProfileForm initial={resource.data} />}
     </Resource>
+    <SurfaceCard className="mt-6 max-w-3xl space-y-4 p-6">
+      <h2 className="sf-display text-xl font-semibold">Account session</h2>
+      <p className="text-sm text-text-secondary">Signed in as {user?.name}. End your current session when you have finished.</p>
+      <ActionButton variant="void" onClick={requestLogout}>Log out</ActionButton>
+    </SurfaceCard>
   </>
 }
 
