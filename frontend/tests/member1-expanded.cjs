@@ -115,6 +115,7 @@ async function ready() {
   await page.getByText('Your sample profile was updated.', { exact: true }).waitFor()
   await tab('Overview')
   await heading('Hello, Nimal.')
+  await heading('Your next steps')
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.screenshot({ path: path.join(output, 'dashboard-desktop.png'), fullPage: true })
   await page.getByText('Client Flow AI · ask about a company policy', { exact: true }).click()

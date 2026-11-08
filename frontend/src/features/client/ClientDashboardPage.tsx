@@ -53,7 +53,6 @@ export function ClientDashboardPage() {
       {tab === 'overview' && <DashboardPage />}
       {tab === 'profile' && <ProfileSettings />}
       {tab === 'requests' && <div className="mb-5"><ActionButton variant="stamp" onClick={() => setSearch({ tab: 'requests', action: 'new' })}>Create new request</ActionButton></div>}
-      {record && <ActionButton className="mb-5" onClick={() => selectTab(tab)}>Back to {tab}</ActionButton>}
       {tab === 'requests' && (record ? <RequestDetailPage key={record} recordId={record} /> : <RecordsPage kind="requests" />)}
       {tab === 'quotations' && (record ? <QuoteDetailPage key={record} recordId={record} /> : <RecordsPage kind="quotations" />)}
       {tab === 'jobs' && (record ? <JobDetailPage key={record} recordId={record} /> : <RecordsPage kind="jobs" />)}

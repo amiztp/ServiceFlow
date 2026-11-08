@@ -1,4 +1,4 @@
-import { useId, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react'
 
 type Props<T extends string> = {
   label: string
@@ -10,6 +10,15 @@ type Props<T extends string> = {
 
 export function Tabs<T extends string>({ label, items, value, onChange, children }: Props<T>) {
   const id = useId()
+  const list = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const selected = list.current?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (!selected || !list.current) return
+    const bounds = list.current.getBoundingClientRect()
+    const tab = selected.getBoundingClientRect()
+    if (tab.left < bounds.left) list.current.scrollLeft -= bounds.left - tab.left
+    else if (tab.right > bounds.right) list.current.scrollLeft += tab.right - bounds.right
+  }, [value])
   function navigate(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const offsets: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1, Home: -index, End: items.length - 1 - index }
     if (!(event.key in offsets)) return
@@ -19,7 +28,7 @@ export function Tabs<T extends string>({ label, items, value, onChange, children
     onChange(items[next].key)
   }
   return <>
-    <div role="tablist" aria-label={label} className="sf-dashboard-tabs">
+    <div ref={list} role="tablist" aria-label={label} className="sf-dashboard-tabs">
       {items.map((item, index) => <button
         key={item.key}
         type="button"
