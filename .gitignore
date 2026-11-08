@@ -27,6 +27,7 @@ htmlcov/
 *.sqlite3
 backend/storage/uploads/
 backend/storage/generated/
+backend/storage/sample-policy.pdf
 
 # Editor and operating system files
 .vscode/
@@ -43,5 +44,9 @@ __pycache__/
 .env
 .env.*
 !.env.example
-#run
-serviceflowbackendrun.txt
+
+# Local scratch scripts
+backend/test_indexing.py
+backend/test_retrieval.py
+backend/test_fusion_local.py
+backend/test_generation_local.py
