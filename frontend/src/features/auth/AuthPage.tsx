@@ -35,7 +35,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
       if (session) {
         signIn(session)
         const from = location.state?.from
-        const safeReturn = session.user.role === 'client' && !session.user.must_change_password && typeof from === 'string' && /^\/(?!\/)/.test(from) && !from.includes('\\')
+        const safeReturn = session.user.role === 'client' && session.user.email_verified !== false && !session.user.must_change_password && typeof from === 'string' && /^\/(?!\/)/.test(from) && !from.includes('\\')
         navigate(safeReturn ? from : destination(session.user), { replace: true })
       } else setSuccess('Registration submitted. Your account may need activation before you can sign in.')
     } catch (cause) {
@@ -52,6 +52,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         {error && <Notice error>{error}</Notice>}{success && <Notice>{success} <Link className="sf-link" to="/login">Sign in</Link></Notice>}
         <ActionButton className="w-full" type="submit" variant="stamp" disabled={pending || !!success}>{pending ? 'Please wait…' : register ? 'Create account' : 'Sign in'}<ArrowRight size={16} /></ActionButton>
       </form>
+      {!register && <Link className="sf-link mt-5 inline-block" to="/password-reset">Forgot your password?</Link>}
       <p className="sf-auth-toggle">{register ? 'Already have an account?' : 'New to ServiceFlow?'} <Link to={register ? '/login' : '/register'} state={location.state}>{register ? 'Sign in' : 'Create an account'}</Link></p>
       {demoMode && <div className="sf-demo-login"><strong>Explore before you get started.</strong><p>{register ? 'Demo registration creates a sample session only.' : 'Sample client: nimal@example.com · DemoClient123!'}</p><p>Sample data resets on refresh. No real accounts or bookings.</p>{!register && <button type="button" disabled={pending} onClick={() => { setEmail('nimal@example.com'); setPassword('DemoClient123!') }}>Fill sample account<ArrowRight size={14} /></button>}</div>}
     </section>

@@ -8,7 +8,7 @@ import { demoMode } from '../../lib/api'
 
 export function DirectoryPage() {
   const resource = useResource(() => clientService.companies())
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(new URLSearchParams(window.location.search).get('search') || '')
   const [service, setService] = useState('')
   const [sort, setSort] = useState('name')
   const location = useLocation()

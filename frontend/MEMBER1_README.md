@@ -1,98 +1,82 @@
-# Member 1: public and client frontend
+# Member 1 public and client frontend
 
-The app includes public company browsing, account screens and the client request-to-invoice interface. The redesign keeps the shared graphite/yellow palette, Sora/Inter/IBM Plex Mono fonts and existing component library.
+The owner selected the expanded 11-page document and workflow diagram on 8 November 2026. These supersede the PDF's reduced-release exclusions for email verification, password recovery, request photos/location, reviews and disputes. The folder tree in the document is a suggestion. Existing team components and conventions are retained.
 
 ## Run in VS Code
 
-Open ServiceFlow, choose Terminal > New Terminal, then:
+Open the ServiceFlow project and run in its terminal:
 
 ```powershell
 cd frontend
-npm ci
-npm run dev
+npm.cmd ci
+npm.cmd run dev
 ```
 
-Open the URL Vite prints. Keep this terminal running. In a second frontend terminal:
+Open the Local URL printed by Vite. Stop with Ctrl+C. Check changes with `npm.cmd run typecheck` and `npm.cmd run build`.
 
-```powershell
-npm run typecheck
-npm run build
-```
+Demo mode defaults to on. Sign in with `nimal@example.com` / `DemoClient123!`, or register a sample account. A browser refresh resets sample accounts, requests, feedback and authentication. No real emails, bookings, payments or dispute notifications are sent. New sample requests stay NEW until a manager/backend supplies a quotation. The seeded records demonstrate the later workflow without giving clients manager controls.
 
-Use Ctrl+Shift+G to review changes in VS Code. Work on `member1/frontend`; commit a small complete task, push the branch, and use a pull request targeting main for review.
+## 11-page scope
 
-## Demo and live modes
+| Page | Route | Delivered behavior |
+| --- | --- | --- |
+| Landing | `/` | Product introduction, service overview and navigation |
+| Services/providers directory | `/services`, alias `/companies` | Search company/service/location, service filters, alphabetical or starting-price sorting |
+| Provider profile | `/companies/:id` | Company services, prices, focus areas, contacts, sample completed-job totals/reviews, policy and shared Flow AI |
+| Login | `/login` | API-backed login adapter, password visibility, role-based routing, preserved intended destination |
+| Registration | `/register` | Client/company forms, phone, validation, sample verification step |
+| Email verification | `/verify-email` | Sample single-use verification links, 15-minute expiry |
+| Pending verification | `/pending-verification` | Company pending/rejected/approved states and status refresh |
+| Password reset | `/password-reset` | Sample request/reset flow, single-use expiring links, password confirmation |
+| Provider onboarding | `/provider-onboarding` | Account registration/email/admin-approval checklist, manager-workspace handoff |
+| Client dashboard | `/client` | Overview plus Requests, Quotations, Jobs, Invoices and Profile/Settings tabs |
+| Internal style guide | `/style-guide` | Existing shared components and loading, empty, error and disabled examples |
 
-Demo mode defaults to on and is labelled on every screen. Use `nimal@example.com` / `DemoClient123!`, or click **Fill sample account**. Demo registration and decisions are in-memory simulations; refreshing resets all sample data and signs out. No payment or real booking occurs.
+Dashboard tabs use URL query parameters such as `/client?tab=jobs&record=SF-JOB-1002`. Old `/client/jobs/:id` links redirect into the dashboard. Details remain within the selected tab. A new request is a modal and includes company/service, description, preferred date/time, address, browser/manual coordinates and up to three JPEG/PNG/WebP photos of 2 MB each. A permission failure leaves manual location entry available. Photos remain in demo memory rather than being uploaded.
 
-Two preloaded workflows let clients review a quotation and an appointment. Newly created sample requests remain NEW until a real manager/backend handles them. No mock manager execution controls are exposed to clients.
+Requests include expandable progress derived from current request/job/invoice records, attachments, cancellation with reason and a dispute form. Quotations display line items and support approve/decline confirmation. Jobs show progress, proposed appointment decisions, early cancellation, completed-job reviews and disputes. Invoices show server/sample totals and paid state with no client payment control. Profile changes and password changes work for sample accounts. Password changes require the current password. One review per completed job and one open dispute per record are enforced in the sample service.
 
-For live mode, copy `.env.example` to `.env.local`, set `VITE_DEMO_MODE=false` and `VITE_API_BASE_URL` to FastAPI, then restart Vite. Configure backend CORS for that frontend origin. Session tokens stay in memory; refresh requires sign-in.
+Desktop uses the shared visual system and sidebar. Phones use a menu, bottom shortcuts and horizontally scrollable dashboard tabs. Shared `Tabs` supports arrow, Home and End keys. Dialogs preserve focus while typing and have scrollable content on short screens. Record loaders expose loading, errors, retries and empty states.
 
-## Routes and navigation
+## Team branch review on 8 November 2026
 
-- `/` and `/companies`: directory with text search, service chips, service filter and starting-price sort. `/services` is an alias.
-- `/companies/:id`: company services, contacts, public policy and shared AI display.
-- `/companies/:id/request`: protected request form, preserving the chosen service through login.
-- `/login`, `/register`, `/account-status`, `/change-password`: account screens.
-- `/client`: dashboard with actual record counts, decisions awaiting attention and recent requests.
-- `/client/requests`, `/client/quotations`, `/client/jobs`, `/client/invoices`: lists plus `/:id` details.
-- `/style-guide`: shared component examples.
-- `/workspace`: Member 2 integration placeholder; no operational implementation is claimed here.
+Latest remote refs were fetched before implementation:
 
-Desktop navigation groups client tasks in a sidebar. Phones use an expandable menu plus bottom shortcuts. Nested records keep their parent navigation selected. Status text uses user-facing labels while API state values remain unchanged.
+| Branch | Commit | Findings |
+| --- | --- | --- |
+| `member2_amishka` | `88a9e1b` | Manager/employee/admin screens and mock policy UI. App.tsx redirects `/` to manager and needs coordinated route integration. The policy upload/question behavior is simulated. |
+| `member3` | `65eb8b1` | Auth routes and database models/migrations. Exposed registration/login/current-user/admin-test and health endpoints. Domain models do not imply implemented HTTP APIs. |
+| `nadeeshan_AI_workflow` | `1277382` | PDF ingestion/retrieval and Gemini generation with chunk citations. The FastAPI app does not yet register policy/ask/job/schedule/invoice HTTP handlers. |
+
+Teammates' branches were reviewed rather than merged wholesale. Operational routing remains Member 2's integration responsibility. `/workspace` clearly indicates its pending integration. Shared FlowAIPanel is reused by the company page and dashboard; no AI answer generator is duplicated.
+
+## Live backend integration and limits
+
+Set `VITE_DEMO_MODE=false` and `VITE_API_BASE_URL` in `.env.local`, restart Vite and configure backend CORS. Tokens stay in memory and a page refresh requires login.
+
+The confirmed Member 3 adapter supports POST `/auth/register` with name/email/phone/password, POST `/auth/login`, and authenticated GET `/auth/me` after a token-only response. Uppercase backend roles are normalized. FastAPI detail strings and validation errors are shown without clearing form values. The backend currently creates PENDING clients and rejects login until ACTIVE, so the activation policy still requires backend work.
+
+The original reduced-release operational adapter still uses the proposed `/companies`, `/requests`, `/quotations`, `/jobs`, `/invoices`, `/companies/:id/policy`, `/ai/ask-docs` and password-change contracts. These require agreement and implementation by Members 3/4 before production. Lists currently assume arrays and monetary values assume numbers. Pagination, Decimal handling, server-enforced ownership, first-login metadata and company status need real-server validation. Existing request fields are sent in live mode; the new time/coordinates/photo fields are disabled until their contract is agreed.
+
+Expanded verification/recovery, company registration, profile editing and feedback flows deliberately have no invented live endpoints. They show an unavailable state in live mode. Sample verification/reset links are exposed for demonstration and must be replaced with server-issued tokens and actual email delivery. They are never production authentication. Completed-job totals/focus areas need public company response fields. Onboarding checks only confirmed account information and does not claim operational readiness.
+
+AI results reuse FlowAIPanel with source/page metadata. ANSWERED responses without citations are shown as missing evidence. Citation links permit HTTP(S) only and include page anchors. Demo returns NO_POLICY and does not fabricate answers. The real AI response status/citation schema still needs agreement with Member 4.
 
 ## Source map
 
-- `src/App.tsx`: route declarations and shared component showcase.
-- `src/components/layout/ClientShell.tsx`: public/client layout, grouped navigation and phone shortcuts.
-- `src/features/marketplace/DirectoryPage.tsx`: discovery and search.
-- `src/features/marketplace/pages.tsx`: company profile and request form.
-- `src/features/auth/AuthPage.tsx`: registration/login forms, password visibility and demo autofill.
-- `src/features/auth/pages.tsx`: company status, password change and operational placeholder.
-- `src/features/client/DashboardPage.tsx`: client overview and next actions.
-- `src/features/client/pages.tsx`: record lists, detail screens and decision confirmation.
-- `src/styles/client.css`: scoped public/client presentation; shared operational tokens remain in `src/styles.css`.
-- `src/components/index.tsx`: the team's existing shared library, including FlowAIPanel.
-- `src/lib/api.ts`: API client, bearer headers, timeout and error normalization.
-- `src/lib/client-service.ts`: demo logic and backend adapter.
-- `src/types/client.ts`: proposed operational response types.
+- `src/App.tsx` owns routes and the existing style guide.
+- `src/features/marketplace/` owns landing, directory, profile, request form and client AI integration.
+- `src/features/auth/` owns login/registration, verification/recovery, pending status, onboarding and forced password change.
+- `src/features/client/ClientDashboardPage.tsx` coordinates tabs, record details and request modal.
+- `src/features/client/pages.tsx` retains existing quotation/job/invoice decision views.
+- `src/features/client/RequestTimeline.tsx`, `FeedbackForms.tsx` and `ProfileSettings.tsx` add expanded interactions.
+- `src/lib/api.ts` is the single real HTTP client. `client-service.ts` is the operational adapter. `demo-account.ts` and `client-feedback.ts` isolate sample account/feedback behavior.
+- `src/components/` remains the shared component source. `Tabs.tsx` is exported from the existing library. The shared Modal change stabilizes keyboard focus and adds a scrollable size limit.
 
-## Authentication handoff with Member 3
+## Validation
 
-The adapter now matches the authentication code inspected on Member 3's branch:
+Run `node tests/member1-expanded.cjs` (also available through `node tests/browser-smoke.cjs`) with Playwright installed, or point `PLAYWRIGHT_MODULE` to an existing installation. `BROWSER_PATH` can select Edge/Chromium. The suite starts/stops Vite on 5192. It covers public discovery, protected login return, request modal with location/photo, cancellation, request timeline, quotation/schedule decisions, read-only invoice, reviews/disputes, profile, policy fallback, two-account isolation including a forbidden record URL, verification, recovery-link reuse rejection, provider onboarding, keyboard tabs/dialogs and 390px overflow. Screenshots go to ignored `test-artifacts/expanded/`.
 
-- Client registration: POST `/auth/register` with name, email, phone and password.
-- Login: POST `/auth/login` with email/password. Token-only responses are followed by authenticated GET `/auth/me`; responses already containing a user are also supported.
-- Roles: CLIENT, COMPANY_MANAGER, EMPLOYEE and SYSTEM_ADMIN map to frontend role names.
-- Errors: FastAPI `detail` text and validation arrays become readable messages and field errors. The planned `message` / `field_errors` format is still supported.
-- The backend currently creates PENDING clients and requires ACTIVE status for login. Account activation needs a backend decision; the UI displays the real inactive-account message.
+Run `node tests/auth-contract.cjs` for live-mode tests with mocked HTTP responses on Vite port 5181. It covers token-only login, bearer `/auth/me`, roles, inactive users, field errors and preserved forms, plus rejected quotation approval staying an error. These tests do not establish that an actual backend/database workflow works.
 
-Company registration `/auth/register/company`, password change and company status metadata still need backend implementation/agreement. The current `/auth/me` schema does not expose all required company/first-login metadata. Tests using mocks verify adapter behavior; they do not prove real server/database integration.
-
-## Operational and AI handoff
-
-Agree the types in `src/types/client.ts` with Members 3 and 4 before disabling demo mode. List endpoints currently assume arrays; adapt pagination and Decimal strings to the agreed response shape. Backend totals and permissions are authoritative. Request responses need quotation_id when a quote exists. Quote listing derives from accessible requests and individual quote endpoints.
-
-The company page reuses the existing FlowAIPanel; Member 2 should evolve the shared interactive component rather than duplicate it. Citations require controlled public URLs with policy ID, version and page. Demo mode returns NO_POLICY and never invents evidence. Policy upload/question endpoints, job scheduling, invoices and payments are pending backend integration.
-
-Member 2's operational branch is intentionally not merged into this Member 1 PR. Both members changed App.tsx; integrate route modules together while preserving both public/client and operational routes. This PR updates only Member 1 screens and frontend compatibility code.
-
-## Verification
-
-On 3 November 2026, the locked dependencies installed and TypeScript/production build passed. Browser regression checks cover:
-
-- Directory text search, quick service filters and price sorting.
-- Protected request redirect/login, invalid login and preserved selected service.
-- Request creation/cancellation; quotation approval/decline; one visible created job.
-- Appointment approval/decline and early job cancellation.
-- Read-only client invoices, policy fallback and keyboard dialog dismissal.
-- Company demo registration and 390px overflow checks.
-
-`tests/auth-contract.cjs` separately starts live mode against mocked API responses to check token-only login, bearer current-user lookup, role normalization, inactive-account feedback, unsupported roles, phone payload and FastAPI validation. No real backend or AI evaluation is claimed.
-
-With Playwright available in your development environment, run the dev server and `node tests/browser-smoke.cjs`. Use TEST_BASE_URL for another port. Run `node tests/auth-contract.cjs` for adapter checks; it starts/stops a separate test server on 5181. PLAYWRIGHT_MODULE can point to an external installation; BROWSER_PATH can point to installed Edge/Chromium. These tools do not change package dependencies. Screenshots go to ignored `test-artifacts/`.
-
-## Release status
-
-This is a tested, demo-ready frontend with improved navigation and authentication compatibility. Remaining release work: real operational API integration, Member 2 route integration, company/account state metadata, real PDF citation access and cross-user/company permission tests against the backend. Team review is required before merging the pull request into main.
+The frontend can be demonstrated independently. Full production completion requires the missing backend contracts, real account/email/file storage, operational route integration and end-to-end authorization tests with the team.

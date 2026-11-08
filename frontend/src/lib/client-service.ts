@@ -1,3 +1,4 @@
+import { demoAccount, requireDemo } from './demo-account'
 import { api, ApiError, demoMode, setAccessToken } from './api'
 import type { Company, Invoice, Job, PolicyAnswer, Quote, RequestInput, RequestRecord, Session, User, Role } from '../types/client'
 
@@ -38,9 +39,17 @@ function find<T extends { id: string }>(rows: T[], id: string): T {
   return row
 }
 const copy = <T,>(value: T): T => structuredClone(value)
+function publicCompany(company: Company): Company {
+  const companyRequests = requests.filter(request => request.company_id === company.id)
+  return {
+    ...company,
+    focus_areas: company.offerings.filter(offering => offering.active).map(offering => offering.name),
+    completed_jobs: jobs.filter(job => job.status === 'COMPLETED' && companyRequests.some(request => request.id === job.request_id)).length,
+  }
+}
 export const clientService = {
-  async companies(): Promise<Company[]> { if (!demoMode) return api('/companies'); await wait(); return copy(companies) },
-  async company(id: string): Promise<Company> { if (!demoMode) return api(`/companies/${encodeURIComponent(id)}`); await wait(); return copy(find(companies, id)) },
+  async companies(): Promise<Company[]> { if (!demoMode) return api('/companies'); await wait(); return copy(companies.map(publicCompany)) },
+  async company(id: string): Promise<Company> { if (!demoMode) return api(`/companies/${encodeURIComponent(id)}`); await wait(); return copy(publicCompany(find(companies, id))) },
   async login(email: string, password: string): Promise<Session> {
     if (!demoMode) {
       const result = await api<{ access_token: string; user?: BackendUser }>('/auth/login', 'POST', { email, password })
@@ -49,38 +58,37 @@ export const clientService = {
       catch (cause) { setAccessToken(null); throw cause }
     }
     await wait()
-    if (email !== 'nimal@example.com' || password !== 'DemoClient123!') throw new ApiError('Use the sample account shown below to enter the demo.', 401)
-    return { access_token: 'demo-only', user: { id: 'demo-client', name: 'Nimal Fernando', role: 'client' } }
+    return demoAccount.login(email, password)
   },
   async register(kind: string, body: Record<string, string>): Promise<Session | null> {
-    if (!demoMode) { await api(kind === 'client' ? '/auth/register' : '/auth/register/company', 'POST', body); return null }
+    if (!demoMode) { if (kind !== 'client') requireDemo('Company registration'); await api(kind === 'client' ? '/auth/register' : '/auth/register/company', 'POST', body); return null }
     await wait()
-    return { access_token: 'demo-only', user: { id: 'demo-client', name: body.name, role: kind === 'company' ? 'manager' : 'client', ...(kind === 'company' ? { company_status: 'PENDING' as const } : {}) } }
+    return demoAccount.register(kind, body)
   },
-  async changePassword(password: string) { if (!demoMode) return api('/auth/change-password', 'POST', { new_password: password }); await wait() },
-  async me(): Promise<User> { return normalizeUser(await api<BackendUser>('/auth/me')) },
-  async requests(): Promise<RequestRecord[]> { if (!demoMode) return api('/requests'); await wait(); return copy(requests) },
-  async request(id: string): Promise<RequestRecord> { if (!demoMode) return api(`/requests/${encodeURIComponent(id)}`); await wait(); return copy(find(requests, id)) },
+  async changePassword(password: string) { if (!demoMode) return api('/auth/change-password', 'POST', { new_password: password }); await wait(); demoAccount.changePassword(password) },
+  async me(): Promise<User> { return demoMode ? demoAccount.me() : normalizeUser(await api<BackendUser>('/auth/me')) },
+  async requests(): Promise<RequestRecord[]> { if (!demoMode) return api('/requests'); await wait(); return copy(requests.filter(row => row.client_id === demoAccount.id())) },
+  async request(id: string): Promise<RequestRecord> { if (!demoMode) return api(`/requests/${encodeURIComponent(id)}`); await wait(); return copy(find(requests.filter(row => row.client_id === demoAccount.id()), id)) },
   async createRequest(input: RequestInput): Promise<RequestRecord> {
     if (!demoMode) return api('/requests', 'POST', input)
     await wait(); const company = find(companies, input.company_id); const offer = find(company.offerings, input.company_service_id)
-    const row: RequestRecord = { id: `SF-REQ-${Date.now()}`, client_id: 'demo-client', company_id: company.id, company_name: company.name, service: offer.name, description: input.description, address: input.address, preferred_date: input.preferred_date, status: 'NEW' }
+    const row: RequestRecord = { id: `SF-REQ-${Date.now()}`, client_id: demoAccount.me().id, company_id: company.id, company_name: company.name, service: offer.name, description: input.description, address: input.address, preferred_date: input.preferred_date, preferred_time: input.preferred_time, latitude: input.latitude, longitude: input.longitude, photos: input.photos, status: 'NEW' }
     requests.unshift(row); return copy(row)
   },
   async cancelRequest(id: string, reason: string) {
     if (!demoMode) return api(`/requests/${encodeURIComponent(id)}/cancel`, 'POST', { reason })
-    await wait(); const row = find(requests, id)
+    await wait(); const row = find(requests.filter(row => row.client_id === demoAccount.id()), id)
     if (!['NEW', 'QUOTED'].includes(row.status)) throw new ApiError('This request can no longer be cancelled. Refresh to see its current state.', 409)
     row.status = 'CANCELLED'; if (row.quotation_id) find(quotes, row.quotation_id).status = 'CANCELLED'
   },
   async quotes(): Promise<Quote[]> {
     if (!demoMode) { const records = await clientService.requests(); const ids = [...new Set(records.flatMap(r => r.quotation_id ? [r.quotation_id] : []))]; return Promise.all(ids.map(id => clientService.quote(id))) }
-    await wait(); return copy(quotes)
+    await wait(); return copy(quotes.filter(row => requests.some(request => request.id === row.request_id && request.client_id === demoAccount.id())))
   },
-  async quote(id: string): Promise<Quote> { if (!demoMode) return api(`/quotations/${encodeURIComponent(id)}`); await wait(); return copy(find(quotes, id)) },
+  async quote(id: string): Promise<Quote> { if (!demoMode) return api(`/quotations/${encodeURIComponent(id)}`); await wait(); return copy(find(await clientService.quotes(), id)) },
   async decideQuote(id: string, decision: 'approve' | 'decline') {
     if (!demoMode) return api(`/quotations/${encodeURIComponent(id)}/${decision}`, 'POST')
-    await wait(); const row = find(quotes, id)
+    await wait(); const row = find(quotes, (await clientService.quote(id)).id)
     if (row.status !== 'SENT') throw new ApiError('This quotation is no longer awaiting a decision.', 409)
     const request = find(requests, row.request_id)
     if (decision === 'approve') {
@@ -88,23 +96,23 @@ export const clientService = {
       jobs.unshift({ id: `SF-JOB-${Date.now()}`, request_id: request.id, company_name: row.company_name, service: row.service, status: 'JOB_CREATED', address: request.address })
     } else { row.status = 'DECLINED'; request.status = 'DECLINED' }
   },
-  async jobs(): Promise<Job[]> { if (!demoMode) return api('/jobs'); await wait(); return copy(jobs) },
-  async job(id: string): Promise<Job> { if (!demoMode) return api(`/jobs/${encodeURIComponent(id)}`); await wait(); return copy(find(jobs, id)) },
+  async jobs(): Promise<Job[]> { if (!demoMode) return api('/jobs'); await wait(); return copy(jobs.filter(row => requests.some(request => request.id === row.request_id && request.client_id === demoAccount.id()))) },
+  async job(id: string): Promise<Job> { if (!demoMode) return api(`/jobs/${encodeURIComponent(id)}`); await wait(); return copy(find(await clientService.jobs(), id)) },
   async decideSchedule(id: string, decision: 'approve' | 'decline') {
     if (!demoMode) return api(`/jobs/${encodeURIComponent(id)}/schedule/${decision}`, 'POST')
-    await wait(); const row = find(jobs, id)
+    await wait(); const row = find(jobs, (await clientService.job(id)).id)
     if (row.status !== 'SCHEDULE_PROPOSED') throw new ApiError('The appointment has changed. Refresh before deciding.', 409)
     row.status = decision === 'approve' ? 'SCHEDULE_CONFIRMED' : 'JOB_CREATED'
     if (decision === 'decline') delete row.appointment
   },
   async cancelJob(id: string, reason: string) {
     if (!demoMode) return api(`/jobs/${encodeURIComponent(id)}/cancel`, 'POST', { reason })
-    await wait(); const row = find(jobs, id)
+    await wait(); const row = find(jobs, (await clientService.job(id)).id)
     if (!['JOB_CREATED', 'SCHEDULE_PROPOSED', 'SCHEDULE_CONFIRMED'].includes(row.status)) throw new ApiError('Cancellation is only available before work starts.', 409)
     row.status = 'CANCELLED'; delete row.appointment
   },
-  async invoices(): Promise<Invoice[]> { if (!demoMode) return api('/invoices'); await wait(); return copy(invoices) },
-  async invoice(id: string): Promise<Invoice> { if (!demoMode) return api(`/invoices/${encodeURIComponent(id)}`); await wait(); return copy(find(invoices, id)) },
+  async invoices(): Promise<Invoice[]> { if (!demoMode) return api('/invoices'); await wait(); const ownedJobs = await clientService.jobs(); return copy(invoices.filter(row => ownedJobs.some(job => job.id === row.job_id))) },
+  async invoice(id: string): Promise<Invoice> { if (!demoMode) return api(`/invoices/${encodeURIComponent(id)}`); await wait(); return copy(find(await clientService.invoices(), id)) },
   async policy(companyId: string): Promise<{ title: string; url: string } | null> { if (!demoMode) return api(`/companies/${encodeURIComponent(companyId)}/policy`); await wait(); return null },
   async ask(companyId: string, question: string): Promise<PolicyAnswer> {
     if (!demoMode) return api('/ai/ask-docs', 'POST', { company_id: companyId, question })

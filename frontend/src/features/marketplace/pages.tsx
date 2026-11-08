@@ -1,22 +1,53 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ActionButton, SelectField, SurfaceCard, TextAreaField, TextField, FlowAIPanel } from '../../components'
-import { money, Notice, PageHeader, Resource, today, useResource } from '../../components/client-shared'
+import { Link, useParams } from 'react-router-dom'
+import { SurfaceCard } from '../../components'
+import { money, PageHeader, Resource, useResource } from '../../components/client-shared'
 import { clientService } from '../../lib/client-service'
-import { ApiError } from '../../lib/api'
-import { useSession } from '../../app/session'
-import type { PolicyAnswer } from '../../types/client'
+import { demoMode } from '../../lib/api'
+import { ClientFlowAI } from './ClientFlowAI'
+import { PublicFeedback } from './PublicFeedback'
+export { NewRequestPage } from './RequestForm'
 
 export function CompanyPage() {
-  const { id = '' } = useParams(); const resource = useResource(() => clientService.company(id), [id]); const policy = useResource(() => clientService.policy(id), [id])
-  const { user } = useSession(); const [question, setQuestion] = useState(''); const [answer, setAnswer] = useState<PolicyAnswer>(); const [pending, setPending] = useState(false); const [error, setError] = useState('')
-  useEffect(() => { setQuestion(''); setAnswer(undefined); setError('') }, [id])
-  async function ask(event: FormEvent) { event.preventDefault(); if (pending) return; setPending(true); setError(''); setAnswer(undefined); try { setAnswer(await clientService.ask(id, question.trim())) } catch (e) { setError((e as Error).message) } finally { setPending(false) } }
-  return <Resource {...resource} retry={resource.reload}>{resource.data && <><Link to="/companies" className="sf-link mb-6 inline-block">← All companies</Link><PageHeader eyebrow={resource.data.category} title={resource.data.name} description={resource.data.description} /><div className="grid items-start gap-7 lg:grid-cols-[1.4fr_1fr]"><div className="space-y-5"><SurfaceCard className="p-6"><h2 className="sf-display mb-4 text-xl font-semibold">Services</h2>{resource.data.offerings.filter(o => o.active).map(o => <div key={o.id} className="flex flex-wrap items-center justify-between gap-4 border-t border-line py-5"><div><h3 className="font-semibold">{o.name}</h3><p className="mt-1 text-sm text-text-secondary">Starting from {money(o.starting_price)}</p></div><Link className="sf-link" to={`/companies/${id}/request?service=${encodeURIComponent(o.id)}`}>Request service →</Link></div>)}</SurfaceCard><SurfaceCard className="p-6"><h2 className="sf-display mb-3 text-xl font-semibold">Company details</h2><p>{resource.data.location}</p><p className="mt-2">{resource.data.phone}</p><a className="sf-link mt-2 inline-block" href={`mailto:${resource.data.email}`}>{resource.data.email}</a></SurfaceCard></div><aside className="space-y-5"><SurfaceCard className="p-6"><h2 className="sf-display mb-3 text-xl font-semibold">Public policy</h2><Resource {...policy} retry={policy.reload}>{policy.data ? <a href={policy.data.url} className="sf-link" target="_blank" rel="noreferrer">{policy.data.title} ↗</a> : <p className="text-sm text-text-secondary">This company has not published a public policy.</p>}</Resource></SurfaceCard><SurfaceCard className="p-6"><h2 className="sf-display text-xl font-semibold">Ask Flow AI</h2><p className="mb-5 mt-2 text-sm text-text-secondary">Ask about this company’s public policy. Answers need evidence from its PDF.</p>{user?.role === 'client' ? <form onSubmit={ask} className="space-y-4"><TextAreaField label="Your policy question" required maxLength={1000} value={question} onChange={e => setQuestion(e.target.value)} /><ActionButton type="submit" disabled={pending || !question.trim()} variant="stamp">{pending ? 'Checking policy…' : 'Ask question'}</ActionButton></form> : <Link className="sf-link" to="/login">Sign in as a client to ask →</Link>}{error && <div className="mt-4"><Notice error>{error}</Notice></div>}{answer && <div className="mt-5"><FlowAIPanel question={question} answer={answer.answer} />{answer.citations.map(c => <a key={`${c.policy_id}-${c.page}`} className="sf-link mt-3 block text-sm" target="_blank" rel="noreferrer" href={`${c.url.split('#')[0]}#page=${c.page}`}>{c.title} · Version {c.policy_version} · Page {c.page} ↗</a>)}</div>}</SurfaceCard></aside></div></>}</Resource>
-}
-export function NewRequestPage() {
-  const { id = '' } = useParams(); const resource = useResource(() => clientService.company(id), [id]); const navigate = useNavigate(); const location = useLocation()
-  const [service, setService] = useState(new URLSearchParams(location.search).get('service') || ''); const [description, setDescription] = useState(''); const [address, setAddress] = useState(''); const [date, setDate] = useState(''); const [pending, setPending] = useState(false); const [error, setError] = useState(''); const [fields, setFields] = useState<Record<string, string>>({})
-  async function submit(event: FormEvent) { event.preventDefault(); if (pending) return; setPending(true); setError(''); setFields({}); try { const row = await clientService.createRequest({ company_id: id, company_service_id: service, description: description.trim(), address: address.trim(), preferred_date: date }); navigate(`/client/requests/${row.id}`) } catch (e) { setError((e as Error).message); if (e instanceof ApiError) setFields(e.fieldErrors) } finally { setPending(false) } }
-  return <><PageHeader eyebrow="NEW SERVICE REQUEST" title="Tell us what you need" description="Your preferred date is a suggestion. An appointment is confirmed after you approve the quotation and proposed slot." /><Resource {...resource} retry={resource.reload}>{resource.data && <SurfaceCard className="max-w-2xl p-6 md:p-8"><h2 className="sf-display mb-6 text-xl font-semibold">Request from {resource.data.name}</h2><form className="space-y-5" onSubmit={submit}><SelectField label="Service" required value={service} onChange={e => setService(e.target.value)} error={fields.company_service_id}><option value="">Choose a service</option>{resource.data.offerings.filter(o => o.active).map(o => <option key={o.id} value={o.id}>{o.name} — from {money(o.starting_price)}</option>)}</SelectField><TextAreaField label="Describe the work" required minLength={10} maxLength={2000} value={description} onChange={e => setDescription(e.target.value)} error={fields.description} hint="Include the problem and what you would like inspected or serviced." /><TextField label="Service address" required maxLength={500} value={address} onChange={e => setAddress(e.target.value)} error={fields.address} /><TextField label="Preferred date" type="date" required min={today()} value={date} onChange={e => setDate(e.target.value)} error={fields.preferred_date} />{error && <Notice error>{error}</Notice>}<div className="flex flex-wrap items-center gap-5"><ActionButton type="submit" variant="stamp" disabled={pending || !description.trim() || !address.trim()}>{pending ? 'Sending…' : 'Send request'}</ActionButton><Link className="sf-link" to={`/companies/${id}`}>Back to company</Link></div></form></SurfaceCard>}</Resource></>
+  const { id = '' } = useParams()
+  const resource = useResource(() => clientService.company(id), [id])
+  const policy = useResource(() => clientService.policy(id), [id])
+  const company = resource.data
+  return <Resource {...resource} retry={resource.reload}>
+    {company && <>
+      <Link to="/companies" className="sf-link mb-6 inline-block">← All companies</Link>
+      <PageHeader eyebrow={company.category} title={company.name} description={company.description} />
+      <div className="grid items-start gap-7 lg:grid-cols-[1.4fr_1fr]">
+        <div className="space-y-5">
+          <SurfaceCard className="p-6">
+            <h2 className="sf-display mb-4 text-xl font-semibold">Services</h2>
+            {company.offerings.filter(offering => offering.active).map(offering => <div key={offering.id} className="flex flex-wrap items-center justify-between gap-4 border-t border-line py-5">
+              <div><h3 className="font-semibold">{offering.name}</h3><p className="mt-1 text-sm text-text-secondary">Starting from {money(offering.starting_price)}</p></div>
+              <Link className="sf-link" to={`/companies/${encodeURIComponent(id)}/request?service=${encodeURIComponent(offering.id)}`}>Request service →</Link>
+            </div>)}
+          </SurfaceCard>
+          <SurfaceCard className="space-y-4 p-6">
+            <h2 className="sf-display text-xl font-semibold">Company details</h2>
+            <p>{company.location}</p>
+            <a className="sf-link block" href={`tel:${company.phone.replace(/[^+\d]/g, '')}`}>{company.phone}</a>
+            <a className="sf-link block break-all" href={`mailto:${company.email}`}>{company.email}</a>
+            <h3 className="font-semibold">Focus areas</h3>
+            <ul className="list-inside list-disc text-sm text-text-secondary">
+              {(company.focus_areas || [company.category]).map(area => <li key={area}>{area}</li>)}
+            </ul>
+            {company.completed_jobs !== undefined && <p className="font-semibold">{company.completed_jobs} completed {demoMode ? 'sample ' : ''}job(s)</p>}
+          </SurfaceCard>
+          <PublicFeedback companyId={id} />
+        </div>
+        <aside className="space-y-5">
+          <SurfaceCard className="p-6">
+            <h2 className="sf-display mb-3 text-xl font-semibold">Public policy</h2>
+            <Resource {...policy} retry={policy.reload}>
+              {policy.data ? <a href={policy.data.url} className="sf-link" target="_blank" rel="noreferrer">{policy.data.title} ↗</a> : <p className="text-sm text-text-secondary">This company has not published a public policy.</p>}
+            </Resource>
+          </SurfaceCard>
+          <SurfaceCard className="p-6"><ClientFlowAI key={id} companyId={id} /></SurfaceCard>
+        </aside>
+      </div>
+    </>}
+  </Resource>
 }

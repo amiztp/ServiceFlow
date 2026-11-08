@@ -1,16 +1,18 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { setAccessToken } from '../lib/api'
+import { demoAccount } from '../lib/demo-account'
 import type { Session, User } from '../types/client'
 const SessionContext = createContext<{ user: User | null; signIn: (session: Session) => void; signOut: () => void }>({ user: null, signIn: () => {}, signOut: () => {} })
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  return <SessionContext.Provider value={{ user, signIn: session => { if (session.access_token) setAccessToken(session.access_token); setUser(session.user) }, signOut: () => { setAccessToken(null); setUser(null) } }}>{children}</SessionContext.Provider>
+  return <SessionContext.Provider value={{ user, signIn: session => { if (session.access_token) setAccessToken(session.access_token); setUser(session.user) }, signOut: () => { setAccessToken(null); demoAccount.logout(); setUser(null) } }}>{children}</SessionContext.Provider>
 }
 export const useSession = () => useContext(SessionContext)
 export function destination(user: User) {
+  if (user.email_verified === false) return '/verify-email'
   if (user.must_change_password) return '/change-password'
-  if (user.role === 'manager' && user.company_status !== 'APPROVED') return '/account-status'
+  if (user.role === 'manager' && user.company_status !== 'APPROVED') return '/pending-verification'
   return user.role === 'client' ? '/client' : '/workspace'
 }
 export function ClientGuard({ children }: { children: ReactNode }) {
