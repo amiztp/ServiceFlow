@@ -79,3 +79,7 @@ input[type="file"] {
     min-height: 32rem;
   }
 }
+
+@media (max-width: 640px) {
+  .sf-topbar-discover { display: none; }
+}

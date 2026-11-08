@@ -23,6 +23,8 @@ async function ready() {
   await ready()
   browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_PATH ? { executablePath: process.env.BROWSER_PATH } : {}) })
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, permissions: ['geolocation'], geolocation: { latitude: 6.927079, longitude: 79.861244 } })
+  // Keep workflow checks independent of the external font service.
+  await context.route(/https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort())
   const page = await context.newPage()
   page.setDefaultTimeout(12000)
   const errors = []
@@ -126,7 +128,7 @@ async function ready() {
   await link('Find a service').last().click()
   await page.locator('.sf-company-card h3 a').first().click()
   await page.getByText('4.0 / 5 from 1 sample review(s)', { exact: false }).waitFor()
-  await button('Sign out').click()
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Log out', exact: true }).click()
 
   // Registration, verification and isolation use a second account in the same running app.
   await link('Create account').click()
@@ -145,7 +147,7 @@ async function ready() {
   await page.evaluate(() => { history.pushState({}, '', '/client?tab=requests&record=SF-REQ-1001'); dispatchEvent(new PopStateEvent('popstate')) })
   await page.getByText('This record is unavailable or you do not have access to it.', { exact: true }).waitFor()
   assert.equal(await page.getByText('Please inspect an intermittent power issue in the kitchen.', { exact: true }).count(), 0)
-  await button('Sign out').click()
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Log out', exact: true }).click()
   await link('Sign in').click()
   await link('Forgot your password?').click()
   await page.getByLabel('Email address').fill('second@example.com')
@@ -159,7 +161,7 @@ async function ready() {
   await link('Return to sign in →').click()
   await login('second@example.com', 'ChangedClient123!')
   await heading('Hello, Second.')
-  await button('Sign out').click()
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Log out', exact: true }).click()
   await page.evaluate(url => { history.pushState({}, '', url); dispatchEvent(new PopStateEvent('popstate')) }, usedReset)
   await page.getByLabel(/^New\ password/).fill('AnotherClient123!')
   await page.getByLabel(/^Confirm\ password/).fill('AnotherClient123!')
@@ -218,6 +220,14 @@ async function ready() {
   await alternate.getByRole('dialog').waitFor()
   await alternate.keyboard.press('Escape')
   assert.equal(await alternate.getByRole('dialog').count(), 0)
+  await alternate.setViewportSize({ width: 390, height: 844 })
+  assert(await alternate.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Logout controls must fit on phones')
+  await alternate.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Log out', exact: true }).click()
+  await alternate.getByRole('link', { name: 'Sign in', exact: true }).waitFor()
+  assert.equal(await alternate.getByRole('tablist', { name: 'Client dashboard sections' }).count(), 0)
+  await alternate.evaluate(() => { history.pushState({}, '', '/client?tab=invoices'); dispatchEvent(new PopStateEvent('popstate')) })
+  await alternate.getByRole('heading', { name: 'Welcome back', exact: true }).waitFor()
+  assert.equal(await alternate.getByRole('heading', { name: 'Your invoices', exact: true }).count(), 0)
   assert.deepEqual(errors, [])
   console.log('PASS expanded Member 1 journey, request photos/location, decisions, timeline, invoice, review/dispute, profile, policy fallback, account isolation, verification, single-use recovery, company onboarding and mobile layouts.')
 })().catch(error => { console.error(error); process.exitCode = 1 }).finally(async () => {
