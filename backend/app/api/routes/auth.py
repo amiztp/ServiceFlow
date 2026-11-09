@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.core.security import hash_password
-from app.schemas.auth import RegisterRequest, RegisterResponse
+from app.schemas.auth import ChangePasswordRequest, RegisterRequest, RegisterResponse
 from app.core.security import verify_password, create_access_token
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.core.dependencies import get_current_user
@@ -393,6 +393,7 @@ def reset_password(
         )
 
     user.password_hash = hash_password(data.new_password)
+    user.must_change_password = False
 
     # Invalidate the reset token.
     user.reset_token_hash = None
@@ -403,3 +404,37 @@ def reset_password(
     return {
         "message": "Password has been reset successfully."
     }
+
+
+@router.post("/change-password")
+def change_password(
+    data: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    user = db.scalar(
+        select(User)
+        .where(User.id == current_user.id, User.status == "ACTIVE")
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+
+    if user is None:
+        raise HTTPException(status_code=403, detail="Account is not active")
+
+    if not verify_password(data.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+
+    if data.new_password == data.current_password:
+        raise HTTPException(
+            status_code=400,
+            detail="New password must differ from the current password",
+        )
+
+    user.password_hash = hash_password(data.new_password)
+    user.must_change_password = False
+    user.reset_token_hash = None
+    user.reset_token_expires_at = None
+
+    db.commit()
+    return {"message": "Password changed successfully"}
