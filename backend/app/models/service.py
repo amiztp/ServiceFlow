@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String, Text, func
+from pymupdf import _name
+from sqlalchemy import Boolean, DateTime, Index, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -8,6 +9,14 @@ from app.models.base import Base
 
 class Service(Base):
     __tablename__ = "services"
+
+    __table_args__ = (
+        Index(
+            "uq_services_name_ci",
+            func.lower(func.trim(_name)),
+            unique=True,
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
