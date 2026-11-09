@@ -1,7 +1,15 @@
+
 from datetime import datetime
 
-from pymupdf import _name
-from sqlalchemy import Boolean, DateTime, Index, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Index,
+    String,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -13,15 +21,24 @@ class Service(Base):
     __table_args__ = (
         Index(
             "uq_services_name_ci",
-            func.lower(func.trim(_name)),
+            text("lower(trim(name))"),
             unique=True,
         ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(150), nullable=False)
+
+    name: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
     description: Mapped[str | None] = mapped_column(Text)
-    category: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    category: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
 
     is_active: Mapped[bool] = mapped_column(
         Boolean,
@@ -34,6 +51,7 @@ class Service(Base):
         nullable=False,
         server_default=func.now(),
     )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
