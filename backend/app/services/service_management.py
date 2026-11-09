@@ -60,7 +60,17 @@ def _commit(db: Session) -> None:
 def create_catalog_entry(db: Session, data: ServiceCreate) -> ServiceRead:
     service = Service(**data.model_dump(), is_active=True)
     db.add(service)
-    _commit(db)
+
+    try:
+        db.commit()
+        db.refresh(service)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="A service with this name already exists",
+        )
+
     return ServiceRead.model_validate(service)
 
 

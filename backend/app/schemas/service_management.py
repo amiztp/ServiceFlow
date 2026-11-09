@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Annotated
-
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 ServiceName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=150)]
 Category = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
@@ -26,7 +26,20 @@ class Patch(Input):
 class ServiceCreate(Input):
     name: ServiceName
     description: str | None = None
-    category: Category | None = None
+    category: str = Field(
+        min_length=1,
+        max_length=100,
+    )
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, value):
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Category cannot be empty")
+
+        return value
 
 
 class ServicePatch(Patch):

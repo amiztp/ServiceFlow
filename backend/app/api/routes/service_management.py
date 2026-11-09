@@ -1,5 +1,5 @@
 from typing import Annotated
-
+from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.orm import Session
 
@@ -100,3 +100,4 @@ def edit_service(id: PositiveId, data: ServicePatch, db: Database, _admin: Admin
 @router.post("/admin/services/{id}/deactivate", response_model=ServiceRead, tags=["Admin catalogue"])
 def deactivate_service(id: PositiveId, db: Database, _admin: Admin):
     return services.deactivate_catalog_entry(db, id)
+
