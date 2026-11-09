@@ -27,3 +27,26 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class ProviderRegisterRequest(BaseModel):
+    provider_name: str = Field(min_length=2, max_length=150)
+    provider_email: EmailStr
+    provider_phone: str = Field(min_length=7, max_length=30)
+    address: str | None = None
+    description: str | None = None
+
+    name: str = Field(min_length=2, max_length=150)
+    email: EmailStr
+    phone: str = Field(min_length=7, max_length=30)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class ProviderRegisterResponse(BaseModel):
+    user_id: int
+    provider_id: int
+    name: str
+    email: EmailStr
+    role: str
+    user_status: str
+    provider_status: str

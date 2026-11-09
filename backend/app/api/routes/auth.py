@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -12,6 +11,12 @@ from app.core.security import verify_password, create_access_token
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.core.dependencies import get_current_user
 from app.core.permissions import require_roles
+
+from app.models import Provider
+from app.schemas.auth import (
+    ProviderRegisterRequest,
+    ProviderRegisterResponse,
+)
 
 router = APIRouter()
 
@@ -37,6 +42,7 @@ def register_client(
             detail="An account with this email already exists.",
         )
 
+
     user = User(
         name=data.name.strip(),
         email=email,
@@ -59,6 +65,75 @@ def register_client(
         )
 
     return user
+
+def register_provider_account(
+    data: ProviderRegisterRequest,
+    provider_type: str,
+    user_role: str,
+    db: Session,
+):
+    user_email = str(data.email).lower()
+    provider_email = str(data.provider_email).lower()
+
+    existing_user = db.scalar(
+        select(User).where(User.email == user_email)
+    )
+
+    if existing_user:
+        raise HTTPException(
+            status_code=409,
+            detail="User email already registered",
+        )
+
+    provider = Provider(
+        type=provider_type,
+        name=data.provider_name.strip(),
+        email=provider_email,
+        phone=data.provider_phone.strip(),
+        address=data.address,
+        description=data.description,
+        verification_status="PENDING",
+        accepting_requests=False,
+    )
+
+    try:
+        db.add(provider)
+        db.flush()
+
+        user = User(
+            provider_id=provider.id,
+            role=user_role,
+            name=data.name.strip(),
+            email=user_email,
+            phone=data.phone.strip(),
+            password_hash=hash_password(data.password),
+            status="PENDING",
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        db.refresh(provider)
+
+        return ProviderRegisterResponse(
+            user_id=user.id,
+            provider_id=provider.id,
+            name=user.name,
+            email=user.email,
+            role=user.role,
+            user_status=user.status,
+            provider_status=provider.verification_status,
+        )
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Registration failed because an account or provider record conflicts with existing data.",
+        )
+    except Exception:
+        db.rollback()
+        raise
 
 @router.post("/login", response_model=TokenResponse)
 def login(
@@ -102,3 +177,37 @@ def admin_test(
     current_user: User = Depends(require_roles("SYSTEM_ADMIN")),
 ):
     return {"message": "Admin access granted"}
+
+
+@router.post(
+    "/register/company",
+    response_model=ProviderRegisterResponse,
+    status_code=201,
+)
+def register_company(
+    data: ProviderRegisterRequest,
+    db: Session = Depends(get_db),
+):
+    return register_provider_account(
+        data=data,
+        provider_type="COMPANY",
+        user_role="COMPANY_MANAGER",
+        db=db,
+    )
+
+
+@router.post(
+    "/register/provider",
+    response_model=ProviderRegisterResponse,
+    status_code=201,
+)
+def register_individual_provider(
+    data: ProviderRegisterRequest,
+    db: Session = Depends(get_db),
+):
+    return register_provider_account(
+        data=data,
+        provider_type="INDIVIDUAL",
+        user_role="INDIVIDUAL_PROVIDER",
+        db=db,
+    )

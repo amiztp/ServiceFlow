@@ -28,6 +28,7 @@ htmlcov/
 backend/storage/uploads/
 backend/storage/generated/
 backend/storage/sample-policy.pdf
+backend/storage/policies/
 
 # Editor and operating system files
 .vscode/
