@@ -1,7 +1,7 @@
 
 from pathlib import Path
 
-from pydantic import computed_field
+from pydantic import SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     DB_NAME: str = "serviceflow"
     DB_USER: str = "serviceflow"
     DB_PASSWORD: str
+    GMAIL_SMTP_USER: str
+    GMAIL_SMTP_APP_PASSWORD: SecretStr
+    FRONTEND_VERIFY_EMAIL_URL: str
 
     JWT_SECRET_KEY: str = "change-this-in-your-env"
     JWT_ALGORITHM: str = "HS256"

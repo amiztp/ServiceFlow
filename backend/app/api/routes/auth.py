@@ -11,7 +11,13 @@ from app.core.security import verify_password, create_access_token
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.core.dependencies import get_current_user
 from app.core.permissions import require_roles
+from fastapi import BackgroundTasks
+from app.core.email import send_verification_email
+from app.core.email_verification import issue_verification_token
+from datetime import datetime, timezone
 
+from app.core.email_verification import hash_verification_token
+from app.schemas.auth import VerifyEmailRequest
 from app.models import Provider
 from app.schemas.auth import (
     ProviderRegisterRequest,
@@ -29,6 +35,7 @@ router = APIRouter()
 def register_client(
     data: RegisterRequest,
     db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
 ):
     email = str(data.email).lower()
 
@@ -42,7 +49,6 @@ def register_client(
             detail="An account with this email already exists.",
         )
 
-
     user = User(
         name=data.name.strip(),
         email=email,
@@ -54,9 +60,13 @@ def register_client(
     )
 
     try:
+        token = issue_verification_token(user)
+        recipient = user.email
+
         db.add(user)
         db.commit()
-        db.refresh(user)
+
+        background_tasks.add_task(send_verification_email, recipient, token)
     except IntegrityError:
         db.rollback()
         raise HTTPException(
@@ -66,11 +76,13 @@ def register_client(
 
     return user
 
+
 def register_provider_account(
     data: ProviderRegisterRequest,
     provider_type: str,
     user_role: str,
     db: Session,
+    background_tasks: BackgroundTasks,
 ):
     user_email = str(data.email).lower()
     provider_email = str(data.provider_email).lower()
@@ -110,8 +122,13 @@ def register_provider_account(
             status="PENDING",
         )
 
+        token = issue_verification_token(user)
+        recipient = user.email
+
         db.add(user)
         db.commit()
+
+        background_tasks.add_task(send_verification_email, recipient, token)
         db.refresh(user)
         db.refresh(provider)
 
@@ -187,12 +204,14 @@ def admin_test(
 def register_company(
     data: ProviderRegisterRequest,
     db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
 ):
     return register_provider_account(
         data=data,
         provider_type="COMPANY",
         user_role="COMPANY_MANAGER",
         db=db,
+        background_tasks=background_tasks,
     )
 
 
@@ -204,10 +223,42 @@ def register_company(
 def register_individual_provider(
     data: ProviderRegisterRequest,
     db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
 ):
     return register_provider_account(
         data=data,
         provider_type="INDIVIDUAL",
         user_role="INDIVIDUAL_PROVIDER",
         db=db,
+        background_tasks=background_tasks,
     )
+
+@router.post("/verify-email")
+def verify_email(data: VerifyEmailRequest, db: Session = Depends(get_db)):
+    token_hash = hash_verification_token(data.token)
+
+    user = db.scalar(
+        select(User)
+        .where(User.verification_token_hash == token_hash)
+        .with_for_update()
+    )
+
+    now = datetime.now(timezone.utc)
+    if (
+        user is None
+        or user.email_verified_at is not None
+        or user.verification_token_expires_at is None
+        or user.verification_token_expires_at <= now
+        or user.status not in {"PENDING", "ACTIVE"}
+    ):
+        raise HTTPException(400, "Invalid or expired verification link")
+
+    user.email_verified_at = now
+    user.verification_token_hash = None
+    user.verification_token_expires_at = None
+
+    if user.role == "CLIENT" and user.status == "PENDING":
+        user.status = "ACTIVE"
+
+    db.commit()
+    return {"message": "Email verified", "user_status": user.status}

@@ -50,3 +50,6 @@ class ProviderRegisterResponse(BaseModel):
     role: str
     user_status: str
     provider_status: str
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=43, max_length=43)
