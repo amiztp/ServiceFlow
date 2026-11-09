@@ -53,3 +53,6 @@ class ProviderRegisterResponse(BaseModel):
 
 class VerifyEmailRequest(BaseModel):
     token: str = Field(min_length=43, max_length=43)
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr

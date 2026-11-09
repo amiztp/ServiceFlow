@@ -24,6 +24,16 @@ from app.schemas.auth import (
     ProviderRegisterResponse,
 )
 
+
+from datetime import datetime, timedelta, timezone
+
+from app.core.email_verification import (
+    VERIFICATION_TTL,
+    hash_verification_token,
+    issue_verification_token,
+)
+from app.schemas.auth import ResendVerificationRequest
+
 router = APIRouter()
 
 
@@ -262,3 +272,45 @@ def verify_email(data: VerifyEmailRequest, db: Session = Depends(get_db)):
 
     db.commit()
     return {"message": "Email verified", "user_status": user.status}
+
+VERIFICATION_RESEND_COOLDOWN = timedelta(minutes=1)
+
+
+@router.post("/resend-verification", status_code=202)
+def resend_verification(
+    data: ResendVerificationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    response = {
+        "message": (
+            "If the account is eligible, a verification email will be sent."
+        )
+    }
+
+    email = str(data.email).lower()
+    user = db.scalar(
+        select(User)
+        .where(User.email == email)
+        .with_for_update()
+    )
+
+    if (
+        user is None
+        or user.email_verified_at is not None
+        or user.status != "PENDING"
+    ):
+        return response
+
+    expires_at = user.verification_token_expires_at
+    if expires_at is not None:
+        issued_at = expires_at - VERIFICATION_TTL
+        if datetime.now(timezone.utc) < issued_at + VERIFICATION_RESEND_COOLDOWN:
+            return response
+
+    token = issue_verification_token(user)
+    recipient = user.email
+    db.commit()
+
+    background_tasks.add_task(send_verification_email, recipient, token)
+    return response
