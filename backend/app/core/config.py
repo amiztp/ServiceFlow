@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     GMAIL_SMTP_USER: str
     GMAIL_SMTP_APP_PASSWORD: SecretStr
     FRONTEND_VERIFY_EMAIL_URL: str
+    FRONTEND_RESET_PASSWORD_URL: str
 
     JWT_SECRET_KEY: str = "change-this-in-your-env"
     JWT_ALGORITHM: str = "HS256"

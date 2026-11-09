@@ -27,6 +27,19 @@ from app.schemas.auth import (
 
 from datetime import datetime, timedelta, timezone
 
+from fastapi import BackgroundTasks
+
+from app.core.email import send_password_reset_email
+from app.core.password_reset import issue_reset_token
+from app.schemas.auth import ForgotPasswordRequest
+
+from datetime import datetime, timezone
+
+from app.core.password_reset import hash_reset_token
+from app.core.security import hash_password
+from app.schemas.auth import ResetPasswordRequest
+
+
 from app.core.email_verification import (
     VERIFICATION_TTL,
     hash_verification_token,
@@ -314,3 +327,79 @@ def resend_verification(
 
     background_tasks.add_task(send_verification_email, recipient, token)
     return response
+
+
+
+@router.post("/forgot-password", status_code=202)
+def forgot_password(
+    data: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    response = {
+        "message": "If the account exists, a password reset email will be sent."
+    }
+
+    email = str(data.email).lower()
+
+    user = db.scalar(
+        select(User)
+        .where(User.email == email)
+        .with_for_update()
+    )
+
+    if user is None or user.status not in {"ACTIVE", "PENDING"}:
+        return response
+
+    token = issue_reset_token(user)
+    recipient = user.email
+
+    db.commit()
+
+    background_tasks.add_task(
+        send_password_reset_email,
+        recipient,
+        token,
+    )
+
+    return response
+
+
+
+@router.post("/reset-password")
+def reset_password(
+    data: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    token_hash = hash_reset_token(data.token)
+
+    user = db.scalar(
+        select(User)
+        .where(User.reset_token_hash == token_hash)
+        .with_for_update()
+    )
+
+    now = datetime.now(timezone.utc)
+
+    if (
+        user is None
+        or user.reset_token_expires_at is None
+        or user.reset_token_expires_at <= now
+        or user.status not in {"ACTIVE", "PENDING"}
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired password reset link",
+        )
+
+    user.password_hash = hash_password(data.new_password)
+
+    # Invalidate the reset token.
+    user.reset_token_hash = None
+    user.reset_token_expires_at = None
+
+    db.commit()
+
+    return {
+        "message": "Password has been reset successfully."
+    }
