@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.api.routes import auth
+from app.api.routes.requests import router as requests_router
 
 from app.database import engine
 from app.api.routes.policies import router as policies_router
@@ -46,3 +47,4 @@ app.include_router(policies_router)
 app.include_router(providers_router)
 app.include_router(employees_router)
 app.include_router(service_management_router)
+app.include_router(requests_router)
