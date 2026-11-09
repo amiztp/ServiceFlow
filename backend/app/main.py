@@ -5,6 +5,7 @@ from app.api.routes import auth
 
 from app.database import engine
 from app.api.routes.policies import router as policies_router
+from app.api.routes.providers import router as providers_router
 
 app = FastAPI(
     title="ServiceFlow API",
@@ -36,3 +37,6 @@ def database_health_check():
         ) from None
 
     return {"status": "ok", "database": "connected"}
+
+
+app.include_router(providers_router)
