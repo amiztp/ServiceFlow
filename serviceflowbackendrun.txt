@@ -7,3 +7,5 @@ python -m uvicorn app.main:app --reload
 
 http://127.0.0.1:8000/health/db
 http://127.0.0.1:8000/docs
+sql
+docker exec -it serviceflow-db psql -U serviceflow -d serviceflow
