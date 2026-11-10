@@ -16,7 +16,9 @@ from app.api.routes.jobs import router as jobs_router
 from app.api.routes.request_extensions import (
     router as request_extensions_router,
 )
-
+from app.api.routes.admin_providers import (
+    router as admin_providers_router,
+)
 from app.api.routes.invoices import router as invoices_router
 from app.api.routes.payments import router as payments_router
 
@@ -58,6 +60,7 @@ app.include_router(jobs_router)
 app.include_router(request_extensions_router)
 app.include_router(invoices_router)
 app.include_router(payments_router)
+app.include_router(admin_providers_router)
 
 
 

@@ -1,10 +1,9 @@
-
 import jwt
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-
+from app.models import User, Provider
 from app.core.config import settings
 from app.database import get_db
 from app.models import User
@@ -41,5 +40,17 @@ def get_current_user(
             detail="User not found or account is not active",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if user.provider_id is not None:
+        provider = db.get(Provider, user.provider_id)
+
+        if (
+            provider is None
+            or provider.verification_status != "APPROVED"
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Provider account is not approved or has been suspended",
+            )
 
     return user

@@ -200,6 +200,18 @@ def login(
             detail="Your account is not active",
         )
 
+    if user.provider_id is not None:
+        provider = db.get(Provider, user.provider_id)
+
+        if (
+            provider is None
+            or provider.verification_status != "APPROVED"
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Your provider account is not approved",
+            )
+
     token = create_access_token(
         user_id=user.id,
         role=user.role,
@@ -301,6 +313,14 @@ def verify_email(data: VerifyEmailRequest, db: Session = Depends(get_db)):
 
     if user.role == "CLIENT" and user.status == "PENDING":
         user.status = "ACTIVE"
+    elif user.provider_id is not None:
+        provider = db.get(Provider, user.provider_id)
+
+        if (
+            provider is not None
+            and provider.verification_status == "APPROVED"
+        ):
+            user.status = "ACTIVE"
 
     db.commit()
     return {"message": "Email verified", "user_status": user.status}
