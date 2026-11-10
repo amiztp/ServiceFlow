@@ -11,6 +11,8 @@ from app.api.routes.providers import router as providers_router
 from app.api.routes.employees import router as employees_router
 from app.api.routes.service_management import router as service_management_router
 from app.api.routes.requests import router as requests_router
+from app.api.routes.quotations import router as quotations_router
+
 
 
 app = FastAPI(
@@ -45,6 +47,7 @@ app.include_router(providers_router)
 app.include_router(employees_router)
 app.include_router(service_management_router)
 app.include_router(requests_router)
+app.include_router(quotations_router)
 
 
 @app.get("/health", tags=["Health"])
