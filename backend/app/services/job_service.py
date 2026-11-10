@@ -186,8 +186,19 @@ def _check_worker_availability(db: Session, job: dict, worker_id: int,
     if worker["role"] not in WORKER_ROLES:
         fail(409, "Only an individual provider or employee can be assigned")
     request, service = _get_service_context(db, job)
-    _required_skill_check(db, worker_id, service)
-    _working_hours_check(db, int(job["provider_id"]), scheduled_date, scheduled_time)
+
+    # Skills validation is required for company employees.
+    # Individual providers are validated through provider ownership
+    # and do not need an employee skill record.
+    if worker["role"] == "EMPLOYEE":
+        _required_skill_check(db, worker_id, service)
+
+    _working_hours_check(
+        db,
+        int(job["provider_id"]),
+        scheduled_date,
+        scheduled_time,
+    )
 
     jobs = t["jobs"]
     conflict = db.execute(select(jobs.c.id).where(
