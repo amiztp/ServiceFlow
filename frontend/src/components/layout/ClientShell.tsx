@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ArrowUpRight, BriefcaseBusiness, Building2, Check, ChevronRight, ClipboardList, FileText, LayoutDashboard, LogOut, Menu, Receipt, Search, Settings, X } from 'lucide-react'
 import { useSession } from '../../app/session'
 import { AccountIdentity } from './AccountIdentity'
-import { demoMode } from '../../lib/api'
+import { demoMode, liveApiMode } from '../../lib/api'
 
 const clientLinks = [
   { label: 'Dashboard', href: '/client', icon: LayoutDashboard },
@@ -46,7 +46,7 @@ export function ClientShell() {
 
   return <div className={clientArea ? 'sf-workspace' : 'sf-site'}>
     <a className="sf-skip" href="#main-content">Skip to content</a>
-    {demoMode && <div className="sf-demo"><span className="sf-demo-dot" /><strong>Demo workspace</strong><span className="hidden sm:inline">Explore with sample data</span><span className="sf-demo-divider">/</span><span>No real bookings · resets on refresh</span></div>}
+    {liveApiMode ? <div className="sf-demo"><span className="sf-demo-dot" /><strong>Connected API</strong><span className="hidden sm:inline">Accounts, providers and requests use the shared backend</span><span className="sf-demo-divider">/</span><span>Later workflow screens use sample data</span></div> : demoMode && <div className="sf-demo"><span className="sf-demo-dot" /><strong>Demo workspace</strong><span className="hidden sm:inline">Explore with sample data</span><span className="sf-demo-divider">/</span><span>No real bookings · resets on refresh</span></div>}
     {clientArea ? <>
       <aside className="sf-workspace-sidebar"><div className="sf-sidebar-brand"><Brand /></div>{navigation}<div className="sf-sidebar-tip"><div className="sf-sidebar-tip-icon"><Check size={17} /></div><strong>Every step, in one place.</strong><p>From your first request to your final invoice.</p><Link to="/companies">Find your next service <ArrowUpRight size={15} /></Link></div><div className="sf-sidebar-user"><span className="sf-avatar">{initials}</span><div><strong>{user.name}</strong><span>Client account</span></div><button type="button" aria-label="Log out" onClick={logout}><LogOut size={18} /></button></div></aside>
       <div className="sf-workspace-body"><header className="sf-workspace-topbar"><div className="sf-breadcrumb"><span>Workspace</span><ChevronRight size={14} /><strong>{section}</strong></div><nav aria-label="Main navigation" className="sf-client-top-actions ml-auto flex items-center gap-3"><Link to="/companies" className="sf-topbar-action sf-topbar-discover"><Search size={16} />Find a service</Link>

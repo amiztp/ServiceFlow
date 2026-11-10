@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { SurfaceCard } from '../../components'
+import { EmptyState, SurfaceCard } from '../../components'
 import { money, PageHeader, Resource, useResource } from '../../components/client-shared'
 import { clientService } from '../../lib/client-service'
 import { demoMode } from '../../lib/api'
@@ -24,6 +24,7 @@ export function CompanyPage() {
               <div><h3 className="font-semibold">{offering.name}</h3><p className="mt-1 text-sm text-text-secondary">Starting from {money(offering.starting_price)}</p></div>
               <Link className="sf-link" to={`/companies/${encodeURIComponent(id)}/request?service=${encodeURIComponent(offering.id)}`}>Request service →</Link>
             </div>)}
+            {!company.offerings.some(offering => offering.active) && <EmptyState title="No active services yet" description="This provider has not published any services. Ask the provider manager to add an active offering before sending a request." />}
           </SurfaceCard>
           <SurfaceCard className="space-y-4 p-6">
             <h2 className="sf-display text-xl font-semibold">Company details</h2>

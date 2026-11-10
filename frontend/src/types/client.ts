@@ -1,5 +1,5 @@
 export type Role = 'client' | 'manager' | 'employee' | 'admin'
-export type User = { id: string; name: string; role: Role; email_verified?: boolean; company_name?: string; company_status?: 'PENDING' | 'REJECTED' | 'APPROVED'; must_change_password?: boolean }
+export type User = { id: string; name: string; role: Role; email?: string; phone?: string; email_verified?: boolean; company_name?: string; company_status?: 'PENDING' | 'REJECTED' | 'APPROVED'; must_change_password?: boolean }
 export type Offering = { id: string; name: string; starting_price: number; active: boolean }
 export type Company = { id: string; name: string; category: string; location: string; description: string; phone: string; email: string; offerings: Offering[]; focus_areas?: string[]; completed_jobs?: number }
 export type RequestRecord = { id: string; client_id: string; company_id: string; company_name: string; service: string; description: string; address: string; preferred_date: string; status: 'NEW' | 'QUOTED' | 'CONVERTED' | 'CANCELLED' | 'DECLINED' | 'REJECTED'; quotation_id?: string; preferred_time?: string; latitude?: number; longitude?: number; photos?: { name: string; type: string; data_url: string }[] }

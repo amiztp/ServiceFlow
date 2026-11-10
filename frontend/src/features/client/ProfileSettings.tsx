@@ -2,16 +2,17 @@ import { useState, type FormEvent } from 'react'
 import { ActionButton, SurfaceCard, TextField } from '../../components'
 import { Notice, PageHeader, Resource, useResource } from '../../components/client-shared'
 import { useSession } from '../../app/session'
-import { demoMode } from '../../lib/api'
+import { demoMode, liveApiMode } from '../../lib/api'
 import { demoAccount, requireDemo } from '../../lib/demo-account'
 import { clientService } from '../../lib/client-service'
 
 export function ProfileSettings() {
   const { user, requestLogout } = useSession()
   const resource = useResource(async () => {
+    if (liveApiMode) return { name: user?.name || '', email: user?.email || '', phone: user?.phone || '' }
     requireDemo('Profile settings')
     return demoAccount.profile()
-  })
+  }, [user?.id])
   return <>
     <PageHeader title="Profile / Settings" description="Keep your contact details and account password up to date." />
     <Resource {...resource} retry={resource.reload}>
@@ -44,15 +45,18 @@ function ProfileForm({ initial }: { initial: { name: string; email: string; phon
     if (changePassword && password !== confirm) { setError('Passwords must match.'); return }
     setPending(true)
     try {
-      requireDemo('Profile settings')
+      if (!liveApiMode) requireDemo('Profile settings')
       if (changePassword) {
-        await clientService.login(initial.email, currentPassword)
-        await clientService.changePassword(password)
+        if (liveApiMode) await clientService.changePassword(password, currentPassword)
+        else {
+          await clientService.login(initial.email, currentPassword)
+          await clientService.changePassword(password)
+        }
         setCurrentPassword('')
         setPassword('')
         setConfirm('')
         setMessage('Your sample password was updated.')
-      } else {
+      } else if (!liveApiMode) {
         const user = demoAccount.updateProfile(name.trim(), phone.trim())
         signIn({ access_token: '', user })
         setMessage('Your sample profile was updated.')
@@ -61,14 +65,14 @@ function ProfileForm({ initial }: { initial: { name: string; email: string; phon
     finally { setPending(false) }
   }
   return <div className="max-w-3xl space-y-5">
-    {demoMode && <Notice>Profile changes apply to this sample session and reset on refresh.</Notice>}
+    {liveApiMode ? <Notice>Your account is connected to the shared API. Client profile editing needs a backend profile-update endpoint.</Notice> : demoMode && <Notice>Profile changes apply to this sample session and reset on refresh.</Notice>}
     <SurfaceCard className="p-6">
       <form className="space-y-5" onSubmit={event => void submit(event, false)}>
         <h2 className="sf-display text-xl font-semibold">Contact details</h2>
-        <TextField label="Full name" required maxLength={100} value={name} onChange={event => setName(event.target.value)} />
+        <TextField label="Full name" required maxLength={100} disabled={liveApiMode} value={name} onChange={event => setName(event.target.value)} />
         <TextField label="Email address" disabled value={initial.email} hint="Email changes require a new verification flow." />
-        <TextField label="Phone number" type="tel" required minLength={7} maxLength={30} value={phone} onChange={event => setPhone(event.target.value)} />
-        <ActionButton variant="stamp" type="submit" disabled={pending || !name.trim() || !phone.trim()}>Save profile</ActionButton>
+        <TextField label="Phone number" type="tel" required minLength={7} maxLength={30} disabled={liveApiMode} value={phone} onChange={event => setPhone(event.target.value)} />
+        <ActionButton variant="stamp" type="submit" disabled={liveApiMode || pending || !name.trim() || !phone.trim()}>Save profile</ActionButton>
       </form>
     </SurfaceCard>
     <SurfaceCard className="p-6">

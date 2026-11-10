@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ActionButton, SelectField, SurfaceCard, TextAreaField, TextField } from '../../components'
 import { money, Notice, Resource, today, useResource } from '../../components/client-shared'
 import { clientService } from '../../lib/client-service'
-import { ApiError, demoMode } from '../../lib/api'
+import { ApiError, demoMode, liveApiMode } from '../../lib/api'
 import type { RequestInput } from '../../types/client'
 
 type Props = { companyId?: string; onCreated?: (id: string) => void; onCancel?: () => void }
@@ -76,12 +76,10 @@ export function NewRequestPage({ companyId, onCreated, onCancel }: Props = {}) {
     try {
       const input: RequestInput = {
         company_id: id, company_service_id: service, description: description.trim(), address: address.trim(), preferred_date: date,
-        ...(demoMode ? {
-          preferred_time: time || undefined,
-          latitude: latitude ? Number(latitude) : undefined,
-          longitude: longitude ? Number(longitude) : undefined,
-          photos,
-        } : {}),
+        preferred_time: time || undefined,
+        latitude: latitude ? Number(latitude) : undefined,
+        longitude: longitude ? Number(longitude) : undefined,
+        ...(!liveApiMode ? { photos } : {}),
       }
       const row = await clientService.createRequest(input)
       if (onCreated) onCreated(row.id)
@@ -105,21 +103,21 @@ export function NewRequestPage({ companyId, onCreated, onCancel }: Props = {}) {
         <TextField label="Service address" required maxLength={500} value={address} onChange={event => setAddress(event.target.value)} error={fields.address} />
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField label="Preferred date" type="date" required min={today()} value={date} onChange={event => setDate(event.target.value)} error={fields.preferred_date} />
-          <SelectField label="Preferred time · Asia/Colombo" disabled={!demoMode} value={time} onChange={event => setTime(event.target.value)}>
+          <SelectField label="Preferred time · Asia/Colombo" value={time} onChange={event => setTime(event.target.value)}>
             <option value="">No preference</option>
             {[9, 10, 11, 12, 13, 14, 15, 16].map(hour => <option key={hour} value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</option>)}
           </SelectField>
         </div>
-        <fieldset className="space-y-4 border-t border-line pt-5" disabled={!demoMode || pending}>
+        <fieldset className="space-y-4 border-t border-line pt-5" disabled={pending}>
           <legend className="font-semibold">Service location</legend>
           <p className="text-sm text-text-secondary">Use your current location or enter coordinates for the service address. Check the address before submitting.</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <TextField label="Latitude" type="number" step="any" min={-90} max={90} required={demoMode} value={latitude} onChange={event => setLatitude(event.target.value)} />
-            <TextField label="Longitude" type="number" step="any" min={-180} max={180} required={demoMode} value={longitude} onChange={event => setLongitude(event.target.value)} />
+            <TextField label="Latitude" type="number" step="any" min={-90} max={90} required={demoMode || liveApiMode} value={latitude} onChange={event => setLatitude(event.target.value)} />
+            <TextField label="Longitude" type="number" step="any" min={-180} max={180} required={demoMode || liveApiMode} value={longitude} onChange={event => setLongitude(event.target.value)} />
           </div>
-          <ActionButton disabled={locating || !demoMode} onClick={locate}>{locating ? 'Finding location…' : 'Use my current location'}</ActionButton>
+          <ActionButton disabled={locating} onClick={locate}>{locating ? 'Finding location…' : 'Use my current location'}</ActionButton>
         </fieldset>
-        <fieldset className="space-y-3 border-t border-line pt-5" disabled={!demoMode || pending || reading}>
+        <fieldset className="space-y-3 border-t border-line pt-5" disabled={liveApiMode || !demoMode || pending || reading}>
           <legend className="font-semibold">Optional photos</legend>
           <label className="block text-sm" htmlFor="request-photos">Attach up to 3 photos · JPEG, PNG or WebP · 2 MB each</label>
           <input id="request-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={event => { void selectPhotos(event.target.files); event.target.value = '' }} />
@@ -129,7 +127,8 @@ export function NewRequestPage({ companyId, onCreated, onCancel }: Props = {}) {
             <ActionButton onClick={() => setPhotos(current => current.filter((_, selected) => selected !== index))}>Remove photo {index + 1}</ActionButton>
           </div>)}</div>
         </fieldset>
-        {!demoMode && <Notice>Preferred time, coordinates and photos await an agreed backend contract. The connected request form currently sends the core request fields.</Notice>}
+        {liveApiMode && <Notice>This API receives the provider, service, description, date, address and coordinates. Photo upload will be available when its endpoint is added.</Notice>}
+        {!demoMode && !liveApiMode && <Notice>Preferred time, coordinates and photos await an agreed backend contract. The connected request form currently sends the core request fields.</Notice>}
         {error && <Notice error>{error}</Notice>}
         <div className="flex flex-wrap gap-4">
           <ActionButton type="submit" variant="stamp" disabled={pending || reading || !description.trim() || !address.trim()}>{pending ? 'Sending…' : 'Send request'}</ActionButton>

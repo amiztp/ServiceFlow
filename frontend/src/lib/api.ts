@@ -1,4 +1,7 @@
 export const demoMode = import.meta.env.VITE_DEMO_MODE !== 'false'
+// Enables the routes already available from the shared Tailscale API.
+// Remaining workflow routes stay in demo mode until their backend APIs exist.
+export const liveApiMode = import.meta.env.VITE_USE_LIVE_API === 'true'
 const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')
 let accessToken: string | null = null
 export function setAccessToken(value: string | null) { accessToken = value }

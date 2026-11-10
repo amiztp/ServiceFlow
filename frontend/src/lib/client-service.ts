@@ -1,13 +1,58 @@
 import { demoAccount, requireDemo } from './demo-account'
-import { api, ApiError, demoMode, setAccessToken } from './api'
+import { api, ApiError, demoMode, liveApiMode, setAccessToken } from './api'
 import type { Company, Invoice, Job, PolicyAnswer, Quote, RequestInput, RequestRecord, Session, User, Role } from '../types/client'
 
 type BackendUser = Omit<User, 'id' | 'role'> & { id: string | number; role: string }
+type ApiProviderSummary = { id: number; name: string; description?: string | null; accepting_requests?: boolean; rating?: number | null; completed_jobs?: number | null; starting_price?: number | null }
+type ApiProviderDetail = ApiProviderSummary & { type?: string; email?: string | null; phone?: string | null; address?: string | null; areas?: unknown[]; services?: { id: number; service_id: number; service_name: string; description?: string | null; starting_price: number }[] }
+type ApiService = { id: number; name: string; category?: string | null }
+type ApiRequest = { id: number; client_id: number; provider_id: number; service_id: number; description: string; preferred_date: string; preferred_time?: string | null; address: string; latitude?: number | null; longitude?: number | null; status: string }
+type ApiRequestList = { items: ApiRequest[]; total: number; limit: number; offset: number }
 function normalizeUser(value: BackendUser): User {
   const roles: Record<string, Role> = { CLIENT: 'client', COMPANY_MANAGER: 'manager', EMPLOYEE: 'employee', SYSTEM_ADMIN: 'admin', client: 'client', manager: 'manager', employee: 'employee', admin: 'admin' }
   const role = roles[value.role]
   if (!role) throw new ApiError('This account role is not supported by the current release.', 403)
   return { ...value, id: String(value.id), role }
+}
+
+function providerSummary(value: ApiProviderSummary): Company {
+  return {
+    id: String(value.id), name: value.name, category: 'Service provider', location: 'Service area available on profile',
+    description: value.description || 'This provider has not added a public description yet.', phone: '', email: '',
+    offerings: [], completed_jobs: value.completed_jobs ?? 0,
+  }
+}
+
+function providerDetail(value: ApiProviderDetail): Company {
+  const areas = (value.areas || []).map(area => typeof area === 'string' ? area : '').filter(Boolean)
+  return {
+    ...providerSummary(value), location: value.address || areas.join(', ') || 'Service area available on request',
+    phone: value.phone || '', email: value.email || '',
+    focus_areas: areas,
+    offerings: (value.services || []).map(service => ({
+      id: String(service.service_id), name: service.service_name, starting_price: Number(service.starting_price), active: true,
+    })),
+  }
+}
+
+function requestRecord(value: ApiRequest, providers: Map<number, ApiProviderSummary>, services: Map<number, ApiService>): RequestRecord {
+  const provider = providers.get(value.provider_id)
+  const service = services.get(value.service_id)
+  return {
+    id: String(value.id), client_id: String(value.client_id), company_id: String(value.provider_id),
+    company_name: provider?.name || 'Service provider', service: service?.name || 'Requested service',
+    description: value.description, address: value.address, preferred_date: value.preferred_date,
+    preferred_time: value.preferred_time || undefined, latitude: value.latitude ?? undefined, longitude: value.longitude ?? undefined,
+    status: value.status as RequestRecord['status'],
+  }
+}
+
+async function requestReferences() {
+  const [providers, services] = await Promise.all([
+    api<ApiProviderSummary[]>('/providers?provider_type=COMPANY&limit=100'),
+    api<ApiService[]>('/services'),
+  ])
+  return { providers: new Map(providers.map(provider => [provider.id, provider])), services: new Map(services.map(service => [service.id, service])) }
 }
 
 const companies: Company[] = [
@@ -48,10 +93,21 @@ function publicCompany(company: Company): Company {
   }
 }
 export const clientService = {
-  async companies(): Promise<Company[]> { if (!demoMode) return api('/companies'); await wait(); return copy(companies.map(publicCompany)) },
-  async company(id: string): Promise<Company> { if (!demoMode) return api(`/companies/${encodeURIComponent(id)}`); await wait(); return copy(publicCompany(find(companies, id))) },
+  async companies(): Promise<Company[]> {
+    if (liveApiMode) {
+      const records = await api<ApiProviderSummary[]>('/providers?provider_type=COMPANY&limit=100')
+      return records.map(providerSummary)
+    }
+    if (!demoMode) return api('/companies')
+    await wait(); return copy(companies.map(publicCompany))
+  },
+  async company(id: string): Promise<Company> {
+    if (liveApiMode) return providerDetail(await api<ApiProviderDetail>(`/providers/${encodeURIComponent(id)}`))
+    if (!demoMode) return api(`/companies/${encodeURIComponent(id)}`)
+    await wait(); return copy(publicCompany(find(companies, id)))
+  },
   async login(email: string, password: string): Promise<Session> {
-    if (!demoMode) {
+    if (liveApiMode || !demoMode) {
       const result = await api<{ access_token: string; user?: BackendUser }>('/auth/login', 'POST', { email, password })
       setAccessToken(result.access_token)
       try { return { access_token: result.access_token, user: result.user ? normalizeUser(result.user) : await clientService.me() } }
@@ -61,22 +117,58 @@ export const clientService = {
     return demoAccount.login(email, password)
   },
   async register(kind: string, body: Record<string, string>): Promise<Session | null> {
+    if (liveApiMode) {
+      const payload = kind === 'client' ? body : {
+        provider_name: body.company_name, provider_email: body.email, provider_phone: body.phone,
+        name: body.name, email: body.email, phone: body.phone, password: body.password,
+      }
+      await api(kind === 'client' ? '/auth/register' : '/auth/register/company', 'POST', payload)
+      return null
+    }
     if (!demoMode) { if (kind !== 'client') requireDemo('Company registration'); await api(kind === 'client' ? '/auth/register' : '/auth/register/company', 'POST', body); return null }
     await wait()
     return demoAccount.register(kind, body)
   },
-  async changePassword(password: string) { if (!demoMode) return api('/auth/change-password', 'POST', { new_password: password }); await wait(); demoAccount.changePassword(password) },
-  async me(): Promise<User> { return demoMode ? demoAccount.me() : normalizeUser(await api<BackendUser>('/auth/me')) },
-  async requests(): Promise<RequestRecord[]> { if (!demoMode) return api('/requests'); await wait(); return copy(requests.filter(row => row.client_id === demoAccount.id())) },
-  async request(id: string): Promise<RequestRecord> { if (!demoMode) return api(`/requests/${encodeURIComponent(id)}`); await wait(); return copy(find(requests.filter(row => row.client_id === demoAccount.id()), id)) },
+  async changePassword(password: string, currentPassword?: string) {
+    if (liveApiMode) {
+      if (!currentPassword) throw new ApiError('Enter your current password before choosing a new password.', 422)
+      return api('/auth/change-password', 'POST', { current_password: currentPassword, new_password: password })
+    }
+    if (!demoMode) return api('/auth/change-password', 'POST', { new_password: password }); await wait(); demoAccount.changePassword(password)
+  },
+  async me(): Promise<User> { return liveApiMode || !demoMode ? normalizeUser(await api<BackendUser>('/auth/me')) : demoAccount.me() },
+  async requests(): Promise<RequestRecord[]> {
+    if (liveApiMode) {
+      const [records, references] = await Promise.all([api<ApiRequestList>('/requests?limit=100'), requestReferences()])
+      return records.items.map(record => requestRecord(record, references.providers, references.services))
+    }
+    if (!demoMode) return api('/requests'); await wait(); return copy(requests.filter(row => row.client_id === demoAccount.id()))
+  },
+  async request(id: string): Promise<RequestRecord> {
+    if (liveApiMode) {
+      const [record, references] = await Promise.all([api<ApiRequest>(`/requests/${encodeURIComponent(id)}`), requestReferences()])
+      return requestRecord(record, references.providers, references.services)
+    }
+    if (!demoMode) return api(`/requests/${encodeURIComponent(id)}`); await wait(); return copy(find(requests.filter(row => row.client_id === demoAccount.id()), id))
+  },
   async createRequest(input: RequestInput): Promise<RequestRecord> {
+    if (liveApiMode) {
+      if (!Number.isFinite(input.latitude) || !Number.isFinite(input.longitude)) throw new ApiError('Choose or enter the service location before sending this request.', 422)
+      const saved = await api<ApiRequest>('/requests', 'POST', {
+        provider_id: Number(input.company_id), service_id: Number(input.company_service_id), description: input.description,
+        preferred_date: input.preferred_date, preferred_time: input.preferred_time || null, address: input.address,
+        latitude: input.latitude, longitude: input.longitude,
+      })
+      const references = await requestReferences()
+      return requestRecord(saved, references.providers, references.services)
+    }
     if (!demoMode) return api('/requests', 'POST', input)
     await wait(); const company = find(companies, input.company_id); const offer = find(company.offerings, input.company_service_id)
     const row: RequestRecord = { id: `SF-REQ-${Date.now()}`, client_id: demoAccount.me().id, company_id: company.id, company_name: company.name, service: offer.name, description: input.description, address: input.address, preferred_date: input.preferred_date, preferred_time: input.preferred_time, latitude: input.latitude, longitude: input.longitude, photos: input.photos, status: 'NEW' }
     requests.unshift(row); return copy(row)
   },
   async cancelRequest(id: string, reason: string) {
-    if (!demoMode) return api(`/requests/${encodeURIComponent(id)}/cancel`, 'POST', { reason })
+    if (liveApiMode || !demoMode) return api(`/requests/${encodeURIComponent(id)}/cancel`, 'POST', { reason })
     await wait(); const row = find(requests.filter(row => row.client_id === demoAccount.id()), id)
     if (!['NEW', 'QUOTED'].includes(row.status)) throw new ApiError('This request can no longer be cancelled. Refresh to see its current state.', 409)
     row.status = 'CANCELLED'; if (row.quotation_id) find(quotes, row.quotation_id).status = 'CANCELLED'
