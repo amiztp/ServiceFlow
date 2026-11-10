@@ -17,7 +17,8 @@ from app.api.routes.request_extensions import (
     router as request_extensions_router,
 )
 
-
+from app.api.routes.invoices import router as invoices_router
+from app.api.routes.payments import router as payments_router
 
 
 app = FastAPI(
@@ -55,6 +56,8 @@ app.include_router(requests_router)
 app.include_router(quotations_router)
 app.include_router(jobs_router)
 app.include_router(request_extensions_router)
+app.include_router(invoices_router)
+app.include_router(payments_router)
 
 
 

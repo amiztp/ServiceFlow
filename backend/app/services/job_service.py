@@ -13,6 +13,7 @@ from typing import Any
 from sqlalchemy import MetaData, Table, and_, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from app.services.invoice_service import ensure_invoice_for_completed_job
 
 
 TABLES = (
@@ -370,6 +371,7 @@ def complete_job(db: Session, user: Any, job_id: int) -> dict:
         status="COMPLETED", completed_at=now, updated_at=now
     ))
     _append_status_record(db, job_id, "Job completed")
+    ensure_invoice_for_completed_job(db, job_id)
     db.commit()
     return _get_job(db, user, job_id)
 
