@@ -54,9 +54,8 @@ app.include_router(service_management_router)
 app.include_router(requests_router)
 app.include_router(quotations_router)
 app.include_router(jobs_router)
-app.include_router(requests_router)
 app.include_router(request_extensions_router)
-app.include_router(quotations_router)
+
 
 
 @app.get("/health", tags=["Health"])
