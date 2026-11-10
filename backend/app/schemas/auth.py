@@ -68,3 +68,11 @@ class ResetPasswordRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=1, max_length=128)
     new_password: str = Field(min_length=8, max_length=128)
+
+class AuthMeResponse(RegisterResponse):
+    """Authenticated account details used by the frontend session bootstrap."""
+    email_verified: bool
+    # Provider verification status; null for client/system-admin accounts.
+    # Kept under company_status for the existing frontend contract.
+    company_status: str | None = None
+

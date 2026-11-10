@@ -20,6 +20,21 @@ def _translate(error: service.QuotationServiceError):
     raise HTTPException(status_code=error.status_code, detail=error.detail) from error
 
 
+@router.get(
+    "/requests/{request_id}/quotations",
+    response_model=list[QuotationRead],
+)
+def list_request_quotations(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return service.list_request_quotations(db, current_user, request_id)
+    except service.QuotationServiceError as error:
+        _translate(error)
+
+
 @router.post(
     "/requests/{request_id}/quotations",
     response_model=QuotationRead,

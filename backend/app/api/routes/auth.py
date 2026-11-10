@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.core.security import hash_password
-from app.schemas.auth import ChangePasswordRequest, RegisterRequest, RegisterResponse
+from app.schemas.auth import AuthMeResponse, ChangePasswordRequest, RegisterRequest, RegisterResponse
 from app.core.security import verify_password, create_access_token
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.core.dependencies import get_current_user
@@ -207,11 +207,30 @@ def login(
 
     return TokenResponse(access_token=token)
 
-@router.get("/me", response_model=RegisterResponse)
+@router.get("/me", response_model=AuthMeResponse)
 def get_my_account(
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    return current_user
+    company_status = None
+    if current_user.provider_id is not None:
+        provider = db.scalar(
+            select(Provider).where(Provider.id == current_user.provider_id)
+        )
+        if provider is not None:
+            # This is the provider's admin approval state. The field name
+            # remains company_status to match the current frontend contract.
+            company_status = provider.verification_status
+
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "role": current_user.role,
+        "status": current_user.status,
+        "email_verified": current_user.email_verified_at is not None,
+        "company_status": company_status,
+    }
 @router.get("/admin-test")
 def admin_test(
     current_user: User = Depends(require_roles("SYSTEM_ADMIN")),

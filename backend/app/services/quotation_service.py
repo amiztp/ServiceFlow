@@ -273,6 +273,39 @@ def create_quotation(db: Session, user: Any, request_id: int, data: QuotationCre
     return _response(db, quote)
 
 
+def list_request_quotations(db: Session, user: Any, request_id: int) -> list[dict[str, Any]]:
+    """List quotations for a request after enforcing the request tenant scope.
+
+    Providers see all their request quotations. Clients do not see provider
+    drafts, matching the existing get_quotation() visibility rule.
+    """
+    request = _get_request(db, request_id, lock=False)
+    _scope_request(user, request)
+
+    quote_table = tables(db)["quotations"]
+    stmt = select(quote_table).where(
+        quote_table.c.request_id == request_id
+    )
+    if _role(user) == CLIENT_ROLE:
+        stmt = stmt.where(quote_table.c.status != "DRAFT")
+
+    rows = db.execute(
+        stmt.order_by(quote_table.c.created_at.desc(), quote_table.c.id.desc())
+    ).mappings().all()
+
+    results: list[dict[str, Any]] = []
+    for row in rows:
+        quote = dict(row)
+        quote = _expire_if_needed(db, quote, request)
+        # Re-read after expiry transition so response reflects persisted status.
+        fresh = db.execute(
+            select(quote_table).where(quote_table.c.id == quote["id"])
+        ).mappings().one()
+        results.append(_response(db, dict(fresh)))
+
+    return results
+
+
 def get_quotation(db: Session, user: Any, quotation_id: int) -> dict[str, Any]:
     quote, request = _get_quote_and_request(db, user, quotation_id)
     if _role(user) == CLIENT_ROLE and quote["status"] == "DRAFT":
