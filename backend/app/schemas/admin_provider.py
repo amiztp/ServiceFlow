@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict
 
 
 class AdminProviderResponse(BaseModel):
@@ -7,7 +7,7 @@ class AdminProviderResponse(BaseModel):
     type: str
     name: str
     description: str | None
-    email: EmailStr
+    email: str
     phone: str
     address: str | None
     verification_status: str
