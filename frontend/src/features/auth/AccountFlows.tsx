@@ -3,32 +3,52 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { ActionButton, SurfaceCard, TextField } from '../../components'
 import { Notice, PageHeader } from '../../components/client-shared'
 import { destination, useSession } from '../../app/session'
-import { demoMode } from '../../lib/api'
+import { demoMode, liveApiMode } from '../../lib/api'
 import { demoAccount, requireDemo } from '../../lib/demo-account'
 import { clientService } from '../../lib/client-service'
 
 export function EmailVerificationPage() {
   const { user, signIn } = useSession()
-  const [search] = useSearchParams()
+  const [search, setSearch] = useSearchParams()
   const navigate = useNavigate()
   const [token, setToken] = useState('')
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [pending, setPending] = useState(false)
-  if (!user) return <Navigate to="/login" replace />
-  if (user.email_verified) return <Navigate to={destination(user)} replace />
+  const useLive = liveApiMode || !demoMode
+  const linkToken = search.get('token') || new URLSearchParams(window.location.hash.replace(/^#/, '')).get('token') || ''
+  const hasToken = !!linkToken
+  if (user && user.email_verified) return <Navigate to={destination(user)} replace />
+  if (!user && !hasToken) return <Navigate to="/login" replace />
 
   async function perform(verify: boolean) {
     if (pending) return
     setPending(true)
     setError('')
+    setMessage('')
     try {
-      requireDemo('Email verification')
-      if (verify) {
-        const next = demoAccount.redeem(search.get('token') || '', 'verify')
-        signIn({ access_token: '', user: next })
-        navigate(destination(next), { replace: true })
+      if (useLive) {
+        if (verify) {
+          await clientService.verifyEmail(linkToken)
+          setSearch({})
+          window.history.replaceState(null, '', '/verify-email')
+          setMessage('Your email has been verified. You can now sign in.')
+        } else {
+          const address = user ? user.email : email.trim()
+          if (!address) throw new Error('Enter the email address you registered with.')
+          await clientService.resendVerification(address)
+          setMessage('If the account is eligible, a verification email will be sent. Check your inbox.')
+        }
       } else {
-        setToken(demoAccount.issueLink(demoAccount.profile().email, 'verify') || '')
+        requireDemo('Email verification')
+        if (verify) {
+          const next = demoAccount.redeem(linkToken, 'verify')
+          signIn({ access_token: '', user: next })
+          navigate(destination(next), { replace: true })
+        } else {
+          setToken(demoAccount.issueLink(demoAccount.profile().email, 'verify') || '')
+        }
       }
     } catch (cause) { setError((cause as Error).message) }
     finally { setPending(false) }
@@ -37,11 +57,13 @@ export function EmailVerificationPage() {
   return <div className="mx-auto max-w-xl">
     <PageHeader title="Verify your email" description="Confirm your email address before opening your workspace." />
     <SurfaceCard className="space-y-5 p-6">
-      <Notice>{demoMode ? 'Demo verification uses a single-use sample link valid for 15 minutes. No email is sent.' : 'Email verification is awaiting the backend integration.'}</Notice>
-      <ActionButton variant="stamp" disabled={pending || !demoMode} onClick={() => void perform(!!search.get('token'))}>
-        {pending ? 'Please wait…' : search.get('token') ? 'Confirm email verification' : 'Create sample verification link'}
+      <Notice>{useLive ? 'Verification links expire in 30 minutes and can be used once. Verifying activates a new client account.' : 'Demo verification uses a single-use sample link valid for 15 minutes. No email is sent.'}</Notice>
+      {!hasToken && useLive && !user && <TextField label="Email address" type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" />}
+      <ActionButton variant="stamp" disabled={pending} onClick={() => void perform(hasToken)}>
+        {pending ? 'Please wait…' : hasToken ? 'Confirm email verification' : useLive ? 'Resend verification email' : 'Create sample verification link'}
       </ActionButton>
       {token && <Link className="sf-link block" to={`/verify-email?token=${encodeURIComponent(token)}`}>Open sample verification link →</Link>}
+      {message && <Notice>{message} <Link className="sf-link" to="/login">Sign in</Link></Notice>}
       {error && <Notice error>{error}</Notice>}
     </SurfaceCard>
   </div>
@@ -57,7 +79,9 @@ export function PasswordResetPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [pending, setPending] = useState(false)
-  const reset = search.has('token')
+  const useLive = liveApiMode || !demoMode
+  const token = search.get('token') || new URLSearchParams(window.location.hash.replace(/^#/, '')).get('token') || ''
+  const reset = token !== ''
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -66,18 +90,34 @@ export function PasswordResetPage() {
     if (reset && password !== confirm) { setError('Passwords must match.'); return }
     setPending(true)
     try {
-      requireDemo('Password recovery')
-      if (reset) {
-        demoAccount.redeem(search.get('token') || '', 'reset', password)
-        signOut()
-        setSearch({})
-        setSampleToken('')
-        setPassword('')
-        setConfirm('')
-        setMessage('Your sample password has been changed. You can now sign in.')
+      if (useLive) {
+        if (reset) {
+          await clientService.resetPassword(token, password)
+          signOut()
+          setSearch({})
+          window.history.replaceState(null, '', '/password-reset')
+          setSampleToken('')
+          setPassword('')
+          setConfirm('')
+          setMessage('Your password has been changed. You can now sign in.')
+        } else {
+          await clientService.forgotPassword(email.trim())
+          setMessage('If an account exists for this email, a password reset email has been sent. Check your inbox.')
+        }
       } else {
-        setSampleToken(demoAccount.issueLink(email.trim(), 'reset') || '')
-        setMessage('If a sample account exists, a demo reset link is available below. No email is sent.')
+        requireDemo('Password recovery')
+        if (reset) {
+          demoAccount.redeem(token, 'reset', password)
+          signOut()
+          setSearch({})
+          setSampleToken('')
+          setPassword('')
+          setConfirm('')
+          setMessage('Your sample password has been changed. You can now sign in.')
+        } else {
+          setSampleToken(demoAccount.issueLink(email.trim(), 'reset') || '')
+          setMessage('If a sample account exists, a demo reset link is available below. No email is sent.')
+        }
       }
     } catch (cause) { setError((cause as Error).message) }
     finally { setPending(false) }
@@ -86,7 +126,7 @@ export function PasswordResetPage() {
   return <div className="mx-auto max-w-xl">
     <PageHeader title={reset ? 'Choose a new password' : 'Reset your password'} description="Recover access to your ServiceFlow account." />
     <SurfaceCard className="space-y-5 p-6">
-      <Notice>{demoMode ? 'Sample recovery links expire in 15 minutes and can be used once. All sample accounts reset on refresh.' : 'Password recovery is awaiting the backend integration.'}</Notice>
+      <Notice>{useLive ? 'A reset link will be emailed to you. Links expire in 30 minutes and can be used once.' : 'Sample recovery links expire in 15 minutes and can be used once. All sample accounts reset on refresh.'}</Notice>
       <form className="space-y-5" onSubmit={submit}>
         {reset ? <>
           <TextField label="New password" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={event => setPassword(event.target.value)} />
@@ -94,7 +134,7 @@ export function PasswordResetPage() {
         </> : <TextField label="Email address" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} />}
         {error && <Notice error>{error}</Notice>}
         {message && <Notice>{message}</Notice>}
-        <ActionButton type="submit" variant="stamp" disabled={pending || !demoMode}>{pending ? 'Please wait…' : reset ? 'Save new password' : 'Request reset link'}</ActionButton>
+        <ActionButton type="submit" variant="stamp" disabled={pending}>{pending ? 'Please wait…' : reset ? 'Save new password' : 'Request reset link'}</ActionButton>
       </form>
       {sampleToken && <Link className="sf-link block" to={`/password-reset?token=${sampleToken}`}>Open sample password reset link →</Link>}
       <Link className="sf-link block" to="/login">Return to sign in →</Link>

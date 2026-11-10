@@ -136,6 +136,22 @@ export const clientService = {
     }
     if (!demoMode) return api('/auth/change-password', 'POST', { new_password: password }); await wait(); demoAccount.changePassword(password)
   },
+  async forgotPassword(email: string) {
+    if (liveApiMode || !demoMode) return api('/auth/forgot-password', 'POST', { email })
+    await wait()
+  },
+  async resetPassword(token: string, newPassword: string) {
+    if (liveApiMode || !demoMode) return api('/auth/reset-password', 'POST', { token, new_password: newPassword })
+    await wait()
+  },
+  async verifyEmail(token: string) {
+    if (liveApiMode || !demoMode) return api('/auth/verify-email', 'POST', { token })
+    await wait()
+  },
+  async resendVerification(email: string) {
+    if (liveApiMode || !demoMode) return api('/auth/resend-verification', 'POST', { email })
+    await wait()
+  },
   async me(): Promise<User> { return liveApiMode || !demoMode ? normalizeUser(await api<BackendUser>('/auth/me')) : demoAccount.me() },
   async requests(): Promise<RequestRecord[]> {
     if (liveApiMode) {
