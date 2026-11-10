@@ -67,10 +67,9 @@ class Quotation(Base):
         nullable=False,
         server_default="0",
     )
-    downpayment_amount: Mapped[Decimal] = mapped_column(
+    downpayment_amount: Mapped[Decimal | None] = mapped_column(
         Numeric(12, 2),
-        nullable=False,
-        server_default="0",
+        nullable=True,
     )
 
     valid_until: Mapped[datetime | None] = mapped_column(
