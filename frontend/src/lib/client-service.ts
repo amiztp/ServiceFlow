@@ -8,6 +8,8 @@ type ApiProviderDetail = ApiProviderSummary & { type?: string; email?: string | 
 type ApiService = { id: number; name: string; category?: string | null }
 type ApiRequest = { id: number; client_id: number; provider_id: number; service_id: number; description: string; preferred_date: string; preferred_time?: string | null; address: string; latitude?: number | null; longitude?: number | null; status: string }
 type ApiRequestList = { items: ApiRequest[]; total: number; limit: number; offset: number }
+type ApiQuotationItem = { description: string; quantity: number | string; unit_price: number | string }
+type ApiQuotation = { id: number; request_id: number; status: string; total_amount: number | string; items: ApiQuotationItem[] }
 function normalizeUser(value: BackendUser): User {
   const roles: Record<string, Role> = { CLIENT: 'client', COMPANY_MANAGER: 'manager', EMPLOYEE: 'employee', SYSTEM_ADMIN: 'admin', client: 'client', manager: 'manager', employee: 'employee', admin: 'admin' }
   const role = roles[value.role]
@@ -44,6 +46,16 @@ function requestRecord(value: ApiRequest, providers: Map<number, ApiProviderSumm
     description: value.description, address: value.address, preferred_date: value.preferred_date,
     preferred_time: value.preferred_time || undefined, latitude: value.latitude ?? undefined, longitude: value.longitude ?? undefined,
     status: value.status as RequestRecord['status'],
+  }
+}
+
+function normalizeQuote(value: ApiQuotation, record?: RequestRecord): Quote {
+  return {
+    id: String(value.id), request_id: String(value.request_id),
+    company_name: record?.company_name || 'Service provider', service: record?.service || 'Requested service',
+    status: value.status as Quote['status'],
+    items: (value.items || []).map(item => ({ description: item.description, quantity: Number(item.quantity), unit_price: Number(item.unit_price) })),
+    total: Number(value.total_amount),
   }
 }
 
@@ -190,12 +202,19 @@ export const clientService = {
     row.status = 'CANCELLED'; if (row.quotation_id) find(quotes, row.quotation_id).status = 'CANCELLED'
   },
   async quotes(): Promise<Quote[]> {
-    if (!demoMode) { const records = await clientService.requests(); const ids = [...new Set(records.flatMap(r => r.quotation_id ? [r.quotation_id] : []))]; return Promise.all(ids.map(id => clientService.quote(id))) }
+    if (liveApiMode || !demoMode) { const records = await clientService.requests(); const ids = [...new Set(records.flatMap(r => r.quotation_id ? [r.quotation_id] : []))]; return Promise.all(ids.map(id => clientService.quote(id))) }
     await wait(); return copy(quotes.filter(row => requests.some(request => request.id === row.request_id && request.client_id === demoAccount.id())))
   },
-  async quote(id: string): Promise<Quote> { if (!demoMode) return api(`/quotations/${encodeURIComponent(id)}`); await wait(); return copy(find(await clientService.quotes(), id)) },
+  async quote(id: string): Promise<Quote> {
+    if (liveApiMode || !demoMode) {
+      const value = await api<ApiQuotation>(`/quotations/${encodeURIComponent(id)}`)
+      const record = await clientService.request(String(value.request_id)).catch(() => undefined)
+      return normalizeQuote(value, record)
+    }
+    await wait(); return copy(find(await clientService.quotes(), id))
+  },
   async decideQuote(id: string, decision: 'approve' | 'decline') {
-    if (!demoMode) return api(`/quotations/${encodeURIComponent(id)}/${decision}`, 'POST')
+    if (liveApiMode || !demoMode) return api(`/quotations/${encodeURIComponent(id)}/${decision}`, 'POST')
     await wait(); const row = find(quotes, (await clientService.quote(id)).id)
     if (row.status !== 'SENT') throw new ApiError('This quotation is no longer awaiting a decision.', 409)
     const request = find(requests, row.request_id)
