@@ -21,6 +21,7 @@ from app.api.routes.admin_providers import (
 )
 from app.api.routes.invoices import router as invoices_router
 from app.api.routes.payments import router as payments_router
+from app.api.routes.notifications import router as notifications_router
 
 
 app = FastAPI(
@@ -61,6 +62,7 @@ app.include_router(request_extensions_router)
 app.include_router(invoices_router)
 app.include_router(payments_router)
 app.include_router(admin_providers_router)
+app.include_router(notifications_router)
 
 
 

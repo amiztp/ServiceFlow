@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 # ADAPT THIS IMPORT if your Notification model is declared in a different module.
-from app.models.notification import Notification
+from app.models.notifications import Notification
 
 
 def create_notification(
