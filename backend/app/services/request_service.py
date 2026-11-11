@@ -15,6 +15,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.schemas.service_request import RequestCreate
+from app.services.notification_events import (
+    NotificationType,
+    notify_provider_owners,
+)
 
 PROVIDER_ROLES = frozenset({"INDIVIDUAL_PROVIDER", "COMPANY_MANAGER"})
 REQUEST_STATUSES = frozenset({
@@ -198,6 +202,13 @@ def create_request(db: Session, user: Any, data: RequestCreate) -> dict[str, Any
     values.update(client_id=int(user.id), status="NEW")
     try:
         request_id = db.execute(insert(requests).values(**values).returning(requests.c.id)).scalar_one()
+        notify_provider_owners(
+            db,
+            provider_id=int(data.provider_id),
+            title="New Service Request",
+            message=f"You received a new service request #{request_id}.",
+            notification_type=NotificationType.REQUEST_CREATED,
+        )
         db.commit()
     except IntegrityError:
         db.rollback()

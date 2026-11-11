@@ -16,6 +16,12 @@ from sqlalchemy.orm import Session
 
 from app.schemas.quotation import QuotationCreate, QuotationUpdate
 
+from app.services.notification_events import (
+    NotificationType,
+    create_notification,
+    notify_provider_owners,
+)
+
 PROVIDER_ROLES = frozenset({"INDIVIDUAL_PROVIDER", "COMPANY_MANAGER"})
 CLIENT_ROLE = "CLIENT"
 ACTIVE_QUOTATION_STATUSES = frozenset({"DRAFT", "SENT", "APPROVED"})
@@ -356,6 +362,13 @@ def update_draft_quotation(db: Session, user: Any, quotation_id: int, data: Quot
             _insert_items(db, quotation_id, data.items)
         if data.status == "SENT":
             _set_request_status(db, int(request["id"]), "QUOTATION_SENT")
+            create_notification(
+                db,
+                user_id=int(request["client_id"]),
+                title="Quotation Received",
+                message=f"You received a quotation #{quotation_id}.",
+                notification_type=NotificationType.QUOTATION_SENT,
+            )
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -451,6 +464,13 @@ def approve_quotation(db: Session, user: Any, quotation_id: int) -> dict[str, An
             approval_values["updated_at"] = _now()
         db.execute(update(quotes).where(quotes.c.id == quotation_id).values(**approval_values))
         job_id = _create_job_for_approved_quote(db, quote, request)
+        notify_provider_owners(
+            db,
+            provider_id=int(request["provider_id"]),
+            title="Quotation Approved",
+            message=f"Your quotation #{quotation_id} has been approved.",
+            notification_type=NotificationType.QUOTATION_APPROVED,
+        )
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -478,11 +498,22 @@ def decline_quotation(db: Session, user: Any, quotation_id: int) -> dict[str, An
     values: dict[str, Any] = {"status": "DECLINED"}
     if "updated_at" in quotes.c:
         values["updated_at"] = _now()
-    db.execute(update(quotes).where(quotes.c.id == quotation_id).values(**values))
-    if request["status"] == "QUOTATION_SENT":
-        # The proposal permits a declined quotation to be replaced. Return the
-        # request to provider review so another quotation can be prepared.
-        _set_request_status(db, int(request["id"]), "UNDER_REVIEW")
-    db.commit()
+    try:
+        db.execute(update(quotes).where(quotes.c.id == quotation_id).values(**values))
+        if request["status"] == "QUOTATION_SENT":
+            # The proposal permits a declined quotation to be replaced. Return the
+            # request to provider review so another quotation can be prepared.
+            _set_request_status(db, int(request["id"]), "UNDER_REVIEW")
+        notify_provider_owners(
+            db,
+            provider_id=int(request["provider_id"]),
+            title="Quotation Declined",
+            message=f"Your quotation #{quotation_id} has been declined.",
+            notification_type=NotificationType.QUOTATION_DECLINED,
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     fresh = db.execute(select(quotes).where(quotes.c.id == quotation_id)).mappings().one()
     return _response(db, dict(fresh))

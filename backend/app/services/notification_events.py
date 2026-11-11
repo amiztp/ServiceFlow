@@ -6,6 +6,11 @@ database transaction is still open. Do not commit inside create_notification().
 """
 
 from app.services.notification_service import create_notification
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models.user import User
+from app.services.notification_service import create_notification
 
 
 class NotificationType:
@@ -66,3 +71,40 @@ class NotificationType:
 # - Add the notification before the existing business transaction commits.
 # - If the business operation fails, roll back the notification too.
 # - Do not call db.commit() separately for each notification.
+
+
+def notify_provider_owners(
+    db: Session,
+    *,
+    provider_id: int,
+    title: str,
+    message: str,
+    notification_type: str,
+) -> int:
+    """
+    Notify all owner accounts belonging to a provider.
+
+    COMPANY_MANAGER and INDIVIDUAL_PROVIDER are owner roles.
+    This function does not commit.
+    """
+
+    owner_ids = db.scalars(
+        select(User.id).where(
+            User.provider_id == provider_id,
+            User.role.in_([
+                "COMPANY_MANAGER",
+                "INDIVIDUAL_PROVIDER",
+            ]),
+        )
+    ).all()
+
+    for owner_id in owner_ids:
+        create_notification(
+            db,
+            user_id=owner_id,
+            title=title,
+            message=message,
+            notification_type=notification_type,
+        )
+
+    return len(owner_ids)
