@@ -19,7 +19,18 @@ from app.services.working_hour_service import (
     get_working_hours,
     replace_working_hours,
 )
+from app.schemas.service_area import (
+    ServiceAreaCreate,
+    ServiceAreaListResponse,
+    ServiceAreaResponse,
+)
 
+from app.services.provider_area_service import (
+    get_provider_id,
+    list_service_areas,
+    create_service_area,
+    delete_service_area,
+)
 
 router = APIRouter(prefix="/providers", tags=["Providers"])
 
@@ -154,3 +165,58 @@ def update_my_working_hours(
     )
 
     return {"working_hours": hours}
+
+
+
+@router.get(
+    "/me/service-areas",
+    response_model=ServiceAreaListResponse,
+)
+def read_my_service_areas(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    provider_id = get_provider_id(db, current_user)
+
+    areas = list_service_areas(db, provider_id)
+
+    return {"service_areas": areas}
+
+
+@router.post(
+    "/me/service-areas",
+    response_model=ServiceAreaResponse,
+    status_code=201,
+)
+def add_my_service_area(
+    data: ServiceAreaCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    provider_id = get_provider_id(db, current_user)
+
+    return create_service_area(
+        db,
+        provider_id,
+        data,
+    )
+
+
+@router.delete(
+    "/me/service-areas/{area_id}",
+    status_code=204,
+)
+def remove_my_service_area(
+    area_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    provider_id = get_provider_id(db, current_user)
+
+    delete_service_area(
+        db,
+        provider_id,
+        area_id,
+    )
+
+    return None
