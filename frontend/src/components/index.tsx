@@ -12,6 +12,7 @@ const iconMap = { dashboard: LayoutDashboard, browse: Search, categories: Grid2X
   quotations: FileText, jobs: BriefcaseBusiness, schedule: CalendarDays, invoices: Receipt,
   ai: Sparkles, company: Building2, team: Users, settings: Settings } satisfies Record<string, LucideIcon>
 export type NavIcon = keyof typeof iconMap
+export { Tabs } from './Tabs'
 
 export type ActionVariant = 'stamp' | 'stub' | 'void' | 'ghost' | 'icon'
 export function ActionButton({ variant = 'stub', size = 'default', icon: Icon, children, className, title, 'aria-label': ariaLabel, ...props }:
@@ -167,22 +168,24 @@ export function ResponsiveTable<T extends {id:string}>({ columns, rows, caption,
 }
 export function Modal({ open, title, description, children, onClose }: {open:boolean;title:string;description?:string;children:ReactNode;onClose:()=>void}) {
   const dialogRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(()=>{ if (!open) return
     const previous=document.activeElement instanceof HTMLElement ? document.activeElement : null
     const focusable=()=>Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]),[href],input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])') ?? [])
     focusable()[0]?.focus()
-    const handler=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose()
+    const handler=(event:KeyboardEvent)=>{if(event.key==='Escape')closeRef.current()
       if(event.key==='Tab'){const controls=focusable();if(!controls.length)return
         const first=controls[0],last=controls[controls.length-1]
         if(event.shiftKey && document.activeElement===first){event.preventDefault();last.focus()}
         else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first.focus()}
       }}
     document.addEventListener('keydown',handler);return()=>{document.removeEventListener('keydown',handler);previous?.focus()}
-  },[open,onClose])
+  },[open])
   const headingId = useId()
   if(!open)return null
   return <div className="fixed inset-0 z-50 grid place-items-center bg-[#22262B]/45 p-4" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={headingId} className="sf-card w-full max-w-lg p-6">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={headingId} className="sf-card max-h-[90dvh] w-full max-w-2xl overflow-y-auto p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4"><h2 id={headingId} className="sf-display text-xl font-semibold">{title}</h2><ActionButton variant="icon" icon={X} aria-label="Close dialog" onClick={onClose}/></div>
       {description&&<p className="mt-2 text-sm text-text-secondary">{description}</p>}<div className="mt-5">{children}</div>
     </div>
