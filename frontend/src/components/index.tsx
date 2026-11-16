@@ -12,6 +12,7 @@ const iconMap = { dashboard: LayoutDashboard, browse: Search, categories: Grid2X
   quotations: FileText, jobs: BriefcaseBusiness, schedule: CalendarDays, invoices: Receipt,
   ai: Sparkles, company: Building2, team: Users, settings: Settings } satisfies Record<string, LucideIcon>
 export type NavIcon = keyof typeof iconMap
+export { Tabs } from './Tabs'
 
 export type ActionVariant = 'stamp' | 'stub' | 'void' | 'ghost' | 'icon'
 export function ActionButton({ variant = 'stub', size = 'default', icon: Icon, children, className, title, 'aria-label': ariaLabel, ...props }:
@@ -136,9 +137,29 @@ export function ProviderCard({ initials, name, category, location, rating, start
 export type NavItem = {label:string;href:string;icon:NavIcon;count?:number}
 export const roleNav: Record<'client'|'manager'|'employee'|'admin',NavItem[]> = {
   client:[{label:'Dashboard',href:'/client',icon:'dashboard'},{label:'Browse services',href:'/services',icon:'browse'},{label:'Requests',href:'/client/requests',icon:'requests'},{label:'Jobs',href:'/client/jobs',icon:'jobs'},{label:'Invoices',href:'/client/invoices',icon:'invoices'}],
-  manager:[{label:'Dashboard',href:'/manager',icon:'dashboard'},{label:'Requests',href:'/manager/requests',icon:'requests'},{label:'Quotations',href:'/manager/quotations',icon:'quotations'},{label:'Jobs',href:'/manager/jobs',icon:'jobs'},{label:'Schedule',href:'/manager/schedule',icon:'schedule'},{label:'Invoices',href:'/manager/invoices',icon:'invoices'},{label:'Flow AI',href:'/manager/ai',icon:'ai'},{label:'Team',href:'/manager/team',icon:'team'}],
-  employee:[{label:'Dashboard',href:'/employee',icon:'dashboard'},{label:'Jobs',href:'/employee/jobs',icon:'jobs'},{label:'Schedule',href:'/employee/schedule',icon:'schedule'}],
-  admin:[{label:'Dashboard',href:'/admin',icon:'dashboard'},{label:'Company',href:'/admin/companies',icon:'company'},{label:'Settings',href:'/admin/settings',icon:'settings'}]
+manager:[
+  {label:'Dashboard',href:'/manager',icon:'dashboard'},
+  {label:'Requests',href:'/manager/requests',icon:'requests'},
+  {label:'Pipeline',href:'/manager/pipeline',icon:'categories'},
+  {label:'Jobs',href:'/manager/jobs',icon:'jobs'},
+  {label:'Schedule',href:'/manager/schedule',icon:'schedule'},
+  {label:'Invoices',href:'/manager/invoices',icon:'invoices'},
+  {label:'Disputes',href:'/manager/disputes',icon:'requests'},
+  {label:'Business',href:'/manager/business',icon:'company'},
+  {label:'Team',href:'/manager/team',icon:'team'},
+  {label:'Flow AI',href:'/manager/ai',icon:'ai'},
+],
+  employee:[
+    {label:'My Day',href:'/employee/jobs',icon:'jobs'},
+  ],
+  admin:[
+    {label:'Dashboard',href:'/admin',icon:'dashboard'},
+    {label:'Verification',href:'/admin/companies',icon:'company'},
+    {label:'Catalog',href:'/admin/catalog',icon:'categories'},
+    {label:'Requests & Jobs',href:'/admin/requests',icon:'jobs'},
+    {label:'Disputes',href:'/admin/disputes',icon:'requests'},
+    {label:'Settings',href:'/admin/settings',icon:'settings'},
+  ]
 }
 export function AppSidebar({ items, activeHref, userName, subtitle, onNavigate }: {
   items:NavItem[];activeHref:string;userName:string;subtitle:string;onNavigate?:(href:string)=>void
@@ -167,22 +188,24 @@ export function ResponsiveTable<T extends {id:string}>({ columns, rows, caption,
 }
 export function Modal({ open, title, description, children, onClose }: {open:boolean;title:string;description?:string;children:ReactNode;onClose:()=>void}) {
   const dialogRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(()=>{ if (!open) return
     const previous=document.activeElement instanceof HTMLElement ? document.activeElement : null
     const focusable=()=>Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]),[href],input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])') ?? [])
     focusable()[0]?.focus()
-    const handler=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose()
+    const handler=(event:KeyboardEvent)=>{if(event.key==='Escape')closeRef.current()
       if(event.key==='Tab'){const controls=focusable();if(!controls.length)return
         const first=controls[0],last=controls[controls.length-1]
         if(event.shiftKey && document.activeElement===first){event.preventDefault();last.focus()}
         else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first.focus()}
       }}
     document.addEventListener('keydown',handler);return()=>{document.removeEventListener('keydown',handler);previous?.focus()}
-  },[open,onClose])
+  },[open])
   const headingId = useId()
   if(!open)return null
   return <div className="fixed inset-0 z-50 grid place-items-center bg-[#22262B]/45 p-4" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={headingId} className="sf-card w-full max-w-lg p-6">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={headingId} className="sf-card max-h-[90dvh] w-full max-w-2xl overflow-y-auto p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4"><h2 id={headingId} className="sf-display text-xl font-semibold">{title}</h2><ActionButton variant="icon" icon={X} aria-label="Close dialog" onClick={onClose}/></div>
       {description&&<p className="mt-2 text-sm text-text-secondary">{description}</p>}<div className="mt-5">{children}</div>
     </div>
@@ -194,11 +217,45 @@ export function EmptyState({ title, description, children }: {title:string;descr
 export function Skeleton({ rows=3 }: {rows?:number}) {
   return <div role="status" aria-label="Loading" className="sf-card space-y-3 p-5"><span className="sr-only">Loading</span>{Array.from({length:rows},(_,i)=><div key={i} aria-hidden="true" className="sf-skeleton h-4 rounded-docket" style={{width:i%2?'70%':'95%'}}/>)}</div>
 }
-export function FlowAIPanel({ question, answer, source, page, loading=false }: {question:string;answer?:string;source?:string;page?:number;loading?:boolean}) {
-  return <SurfaceCard className="max-w-xl p-5"><h3 className="sf-display flex items-center gap-2 font-bold"><Sparkles className="text-[#6E5600]" size={18} aria-hidden="true"/>Flow AI</h3>
-    <div className="mt-4 flex gap-2 rounded-docket border border-line bg-paper p-3 text-sm"><MessageCircleQuestion className="shrink-0" size={17} aria-hidden="true"/>{question}</div>
-    {loading?<div className="mt-4"><Skeleton rows={2}/></div>:<><div className="mt-4 flex gap-2 text-sm"><Sparkles className="shrink-0 text-[#6E5600]" size={17} aria-hidden="true"/><p>{answer ?? 'The uploaded policy document does not provide enough evidence to answer this question.'}</p></div>
-    {answer && source && page != null && <div className="sf-mono mt-4 inline-flex items-center gap-2 rounded-docket border border-border px-2 py-1 text-[11px] text-text-secondary"><FileSearch size={15} aria-hidden="true"/>Source: {source} · Page {page}</div>}</>}
+export function FlowAIPanel({ question, answer, source, page, citations, loading=false }: {
+  question:string;
+  answer?:string;
+  source?:string;
+  page?:number;
+  citations?: Array<{ source: string; page: number }>;
+  loading?:boolean;
+}) {
+  return <SurfaceCard className="max-w-xl p-5">
+    <h3 className="sf-display flex items-center gap-2 font-bold">
+      <Sparkles className="text-[#6E5600]" size={18} aria-hidden="true"/>Flow AI
+    </h3>
+    <div className="mt-4 flex gap-2 rounded-docket border border-line bg-paper p-3 text-sm">
+      <MessageCircleQuestion className="shrink-0" size={17} aria-hidden="true"/>{question}
+    </div>
+    {loading ? (
+      <div className="mt-4"><Skeleton rows={2}/></div>
+    ) : (
+      <>
+        <div className="mt-4 flex gap-2 text-sm">
+          <Sparkles className="shrink-0 text-[#6E5600]" size={17} aria-hidden="true"/>
+          <p>{answer ?? 'The uploaded policy document does not provide enough evidence to answer this question.'}</p>
+        </div>
+        {citations && citations.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {citations.map((c, i) => (
+              <div key={i} className="sf-mono inline-flex items-center gap-2 rounded-docket border border-border px-2 py-1 text-[11px] text-text-secondary">
+                <FileSearch size={15} aria-hidden="true"/>Source: {c.source} · Page {c.page}
+              </div>
+            ))}
+          </div>
+        )}
+        {(!citations || citations.length === 0) && answer && source && page != null && (
+          <div className="sf-mono mt-4 inline-flex items-center gap-2 rounded-docket border border-border px-2 py-1 text-[11px] text-text-secondary">
+            <FileSearch size={15} aria-hidden="true"/>Source: {source} · Page {page}
+          </div>
+        )}
+      </>
+    )}
   </SurfaceCard>
 }
 export const icons = { Plus,Pencil,Eye,ListFilter,Download,Upload,Ellipsis,Banknote,CalendarDays,Clock3,MapPin,ChevronDown }
